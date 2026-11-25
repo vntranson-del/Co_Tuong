@@ -6,6 +6,8 @@
   <title>Cờ Tướng Cổ Phong - Thiên Thiên Kỳ Đạo</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Supabase (đăng nhập & quản lý tài khoản) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js"></script>
   <!-- Font thư pháp Hán tự & Tiếng Việt cổ điển -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -601,6 +603,9 @@
         <span id="musicIcon">🎵</span>
         <span id="musicLabel">Nhạc: Tắt</span>
       </button>
+      <button id="btnAdmin" type="button" class="wood-btn px-2.5 py-1 rounded-xl text-[11px] font-bold hidden">
+        Quản trị<span id="adminBadge" class="hidden ml-1 px-1.5 rounded-full bg-red-700 text-amber-100"></span>
+      </button>
       <button id="btnLogout" type="button" class="px-2.5 py-1 rounded-xl border border-[#8f6d46] bg-[#e6d1ae]/90 text-[#45210c] text-[11px] font-bold hover:bg-[#d9be94] transition hidden">
         Đăng xuất
       </button>
@@ -771,9 +776,20 @@
           弈
         </div>
         <h1 class="text-lg font-bold text-[#45210c]">Thiên Thiên Kỳ Đạo</h1>
-        <p class="text-xs text-[#6e4626] mt-0.5">Cần có tài khoản đăng nhập mới được vào bàn cờ</p>
+        <p class="text-xs text-[#6e4626] mt-0.5">Tài khoản được Quản trị phê duyệt mới vào được bàn cờ</p>
       </div>
 
+      <!-- Màn hình chờ duyệt / bị từ chối / bị khóa -->
+      <div id="accountNotice" class="hidden text-center">
+        <p id="noticeTitle" class="text-base font-bold text-[#45210c] mb-1"></p>
+        <p id="noticeText" class="text-xs text-[#5e381c] leading-relaxed mb-4"></p>
+        <div class="flex gap-3">
+          <button id="btnNoticeLogout" type="button" class="flex-1 py-2.5 rounded-xl border border-[#8f6d46] bg-[#e6d1ae] text-[#45210c] font-bold text-xs">Đăng xuất</button>
+          <button id="btnNoticeCheck" type="button" class="flex-1 wood-btn py-2.5 rounded-xl font-bold text-xs">Kiểm tra lại</button>
+        </div>
+      </div>
+
+      <div id="authPanel">
       <!-- Chuyển tab Đăng nhập / Đăng ký -->
       <div class="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-[#e4cca2] border border-[#b5833e]/60 mb-4">
         <button id="tabLogin" type="button" class="py-1.5 rounded-lg text-xs font-bold bg-[#6b3919] text-[#ffefd4] shadow transition">
@@ -787,17 +803,17 @@
       <form id="authForm" class="flex flex-col gap-3">
         <div id="displayNameField" class="hidden">
           <label class="block text-xs font-bold text-[#45210c] mb-1">Tên kỳ thủ</label>
-          <input id="authName" type="text" placeholder="Ví dụ: Vô Danh Kỳ Hữu" class="auth-input" autocomplete="nickname" />
+          <input id="authName" type="text" placeholder="Ví dụ: Vô Danh Kỳ Hữu" maxlength="40" class="auth-input" autocomplete="nickname" />
         </div>
 
         <div>
-          <label class="block text-xs font-bold text-[#45210c] mb-1">Tên đăng nhập hoặc Email</label>
-          <input id="authAccount" type="text" required placeholder="Nhập tài khoản của bạn..." class="auth-input" autocomplete="username" />
+          <label class="block text-xs font-bold text-[#45210c] mb-1">Email</label>
+          <input id="authAccount" type="email" required placeholder="tenban@gmail.com" class="auth-input" autocomplete="username" />
         </div>
 
         <div>
           <label class="block text-xs font-bold text-[#45210c] mb-1">Mật khẩu</label>
-          <input id="authPassword" type="password" required placeholder="Tối thiểu 4 ký tự..." class="auth-input" autocomplete="current-password" />
+          <input id="authPassword" type="password" required placeholder="Tối thiểu 6 ký tự..." class="auth-input" autocomplete="current-password" />
         </div>
 
         <p id="authError" class="text-xs font-bold text-red-700 bg-red-100/90 border border-red-300 rounded-lg px-3 py-2 hidden"></p>
@@ -806,6 +822,7 @@
           Đăng nhập & Vào bàn cờ
         </button>
       </form>
+      </div>
 
       <div class="mt-3 pt-3 border-t border-[#b5833e]/40 flex items-center justify-between text-[11px] text-[#6e4626]">
         <span>Nhạc nền: <strong class="text-[#45210c]">kiem_hiep_tinh_duyen.mp3</strong></span>
@@ -813,6 +830,23 @@
           Bật nhạc
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- Trang Quản trị: duyệt và quản lý tài khoản -->
+  <div id="adminModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-[2px] hidden items-center justify-center p-3">
+    <div class="w-full max-w-[460px] max-h-[90dvh] flex flex-col rounded-2xl bg-gradient-to-b from-[#fff9ec] to-[#f0dcb9] border-2 border-[#b5833e] shadow-2xl p-4">
+      <div class="flex items-center justify-between gap-2 mb-3">
+        <h3 class="text-lg font-bold text-[#45210c]">Quản lý kỳ thủ</h3>
+        <div class="flex gap-1.5">
+          <button id="btnAdminRefresh" type="button" class="wood-btn px-3 py-1.5 rounded-lg text-xs font-bold">Tải lại</button>
+          <button id="btnAdminClose" type="button" class="px-3 py-1.5 rounded-lg border border-[#8f6d46] bg-[#e6d1ae] text-[#45210c] text-xs font-bold">Đóng</button>
+        </div>
+      </div>
+      <div id="adminTabs" class="grid grid-cols-4 gap-1 p-1 mb-2 rounded-xl bg-[#e4cca2] border border-[#b5833e]/60"></div>
+      <input id="adminSearch" type="search" placeholder="Tìm theo tên hoặc email..." class="auth-input mb-2" />
+      <p id="adminMessage" class="hidden text-xs font-bold text-red-700 bg-red-100/90 border border-red-300 rounded-lg px-3 py-2 mb-2"></p>
+      <div id="adminList" class="flex-1 min-h-0 overflow-y-auto flex flex-col gap-2"></div>
     </div>
   </div>
 
@@ -864,9 +898,18 @@
      * 0. QUẢN LÝ TÀI KHOẢN (ĐĂNG NHẬP / ĐĂNG KÝ) & NHẠC NỀN MP3
      * =========================================================================
      */
-    const ACCOUNTS_KEY = 'tttk_accounts_v1';
-    const SESSION_KEY = 'tttk_active_session_v1';
+    // ====== CẤU HÌNH SUPABASE — điền 2 giá trị của dự án bạn ======
+    // Chỉ dùng "Publishable key" (hoặc "anon" key). TUYỆT ĐỐI không dán "secret" / "service_role" key.
+    const SUPABASE_URL = 'DAN_PROJECT_URL_VAO_DAY';
+    const SUPABASE_KEY = 'DAN_PUBLISHABLE_KEY_VAO_DAY';
+    // ==============================================================
+
     const MUSIC_PREF_KEY = 'tttk_music_enabled_v1';
+    // Xóa dữ liệu tài khoản kiểu cũ (mật khẩu lưu ngay trên máy)
+    try {
+      localStorage.removeItem('tttk_accounts_v1');
+      localStorage.removeItem('tttk_active_session_v1');
+    } catch (e) {}
 
     const bgmAudio = document.getElementById('bgmAudio');
     bgmAudio.volume = 0.45;
@@ -902,54 +945,70 @@
       }
     }
 
-    function loadAccounts() {
-      try {
-        const raw = localStorage.getItem(ACCOUNTS_KEY);
-        return raw ? JSON.parse(raw) : [];
-      } catch (e) {
-        return [];
+    let sb = null;
+    try {
+      if (window.supabase && /^https:\/\//.test(SUPABASE_URL) && !SUPABASE_KEY.startsWith('DAN_')) {
+        sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
       }
-    }
+    } catch (e) {}
 
-    function saveAccounts(list) {
-      try {
-        localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(list));
-      } catch (e) {}
-    }
-
-    function getActiveSession() {
-      try {
-        const raw = localStorage.getItem(SESSION_KEY);
-        return raw ? JSON.parse(raw) : null;
-      } catch (e) {
-        return null;
-      }
-    }
-
-    function setActiveSession(session) {
-      try {
-        if (session) localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-        else localStorage.removeItem(SESSION_KEY);
-      } catch (e) {}
-    }
-
-    let currentUser = getActiveSession();
-    let authMode = 'login'; // 'login' | 'register'
+    let currentUser = null;   // hồ sơ lấy từ bảng profiles
+    let authMode = 'login';   // 'login' | 'register'
 
     const authGateEl = document.getElementById('authGate');
     const currentUserLabelEl = document.getElementById('currentUserLabel');
     const btnLogoutEl = document.getElementById('btnLogout');
     const btnNewGameEl = document.getElementById('btnNewGame');
+    const btnAdminEl = document.getElementById('btnAdmin');
+    const adminModalEl = document.getElementById('adminModal');
 
     function isAuthenticated() {
-      return Boolean(currentUser && currentUser.account);
+      return Boolean(currentUser && currentUser.status === 'approved');
     }
 
+    function isAdmin() {
+      return isAuthenticated() && currentUser.role === 'admin';
+    }
+
+    function showAuthError(msg) {
+      const el = document.getElementById('authError');
+      el.textContent = msg || '';
+      el.classList.toggle('hidden', !msg);
+    }
+
+    function viError(error) {
+      const m = (error && error.message) || '';
+      if (/invalid login credentials/i.test(m)) return 'Email hoặc mật khẩu không chính xác.';
+      if (/already registered/i.test(m)) return 'Email này đã đăng ký. Vui lòng chuyển sang Đăng nhập.';
+      if (/email not confirmed/i.test(m)) return 'Email chưa được xác nhận. Hãy mở hộp thư và bấm liên kết xác nhận.';
+      if (/password should/i.test(m)) return 'Mật khẩu chưa đủ mạnh (tối thiểu 6 ký tự).';
+      if (/rate limit|too many|security purposes/i.test(m)) return 'Thao tác quá nhanh. Vui lòng đợi một lát rồi thử lại.';
+      if (/fetch|network/i.test(m)) return 'Không kết nối được máy chủ. Kiểm tra mạng và thử lại.';
+      return 'Có lỗi: ' + m;
+    }
+
+    const NOTICES = {
+      pending: ['Đang chờ phê duyệt', 'Đăng ký thành công. Khi Quản trị duyệt, bạn sẽ vào được bàn cờ.'],
+      rejected: ['Đăng ký bị từ chối', 'Quản trị chưa chấp nhận tài khoản này.'],
+      locked: ['Tài khoản đã bị khóa', 'Vui lòng liên hệ Quản trị.']
+    };
+
     function syncAuthGateUI() {
+      const notice = currentUser && NOTICES[currentUser.status];
+      document.getElementById('accountNotice').classList.toggle('hidden', !notice);
+      document.getElementById('authPanel').classList.toggle('hidden', Boolean(notice));
+      if (notice) {
+        document.getElementById('noticeTitle').textContent = notice[0];
+        document.getElementById('noticeText').textContent = `${currentUser.display_name} (${currentUser.email}). ${notice[1]}`;
+      }
+
+      currentUserLabelEl.textContent = currentUser ? currentUser.display_name : 'Chưa đăng nhập';
+      btnLogoutEl.classList.toggle('hidden', !currentUser);
+      btnAdminEl.classList.toggle('hidden', !isAdmin());
+      if (!isAdmin()) closeAdmin();
+
       if (isAuthenticated()) {
         authGateEl.classList.add('hidden');
-        currentUserLabelEl.textContent = currentUser.name || currentUser.account;
-        btnLogoutEl.classList.remove('hidden');
         btnNewGameEl.disabled = false;
         // Nếu vừa đăng nhập và chưa từng thiết lập hạn giờ mới thì đảm bảo đồng hồ chạy mượt
         if (!state.gameOver && !state.pendingUndoFrom && (!state.turnDeadline || state.turnDeadline < Date.now() - 86400000)) {
@@ -958,114 +1017,243 @@
         }
       } else {
         authGateEl.classList.remove('hidden');
-        currentUserLabelEl.textContent = 'Chưa đăng nhập';
-        btnLogoutEl.classList.add('hidden');
         btnNewGameEl.disabled = true;
-        statusPillEl.textContent = 'Vui lòng đăng nhập để vào bàn cờ';
+        selected = null;
+        validMoves = [];
+        gameOverModalEl.classList.add('hidden');
+        gameOverModalEl.classList.remove('flex');
       }
       renderBoard();
+    }
+
+    // Đọc phiên đăng nhập và hồ sơ mới nhất từ Supabase
+    async function refreshProfile() {
+      if (!sb) return;
+      const { data: { session } } = await sb.auth.getSession();
+      let profile = null;
+      if (session) {
+        const { data, error } = await sb.from('profiles')
+          .select('id,email,display_name,role,status')
+          .eq('id', session.user.id)
+          .maybeSingle();
+        if (error) { showAuthError(viError(error)); return; }
+        if (!data) {
+          // Tài khoản đã bị Quản trị xóa
+          await sb.auth.signOut({ scope: 'local' });
+          showAuthError('Tài khoản không còn tồn tại.');
+        }
+        profile = data;
+      }
+      // Bỏ qua kết quả cũ nếu trong lúc tải người dùng đã đăng xuất / đổi tài khoản
+      if (profile) {
+        const { data: now } = await sb.auth.getSession();
+        if (!now.session || now.session.user.id !== profile.id) return;
+      }
+      const changed = JSON.stringify(profile) !== JSON.stringify(currentUser);
+      const wasAllowed = isAuthenticated();
+      currentUser = profile;
+      if (changed) {
+        syncAuthGateUI();
+        if (!wasAllowed && isAuthenticated() && state.gameOver && state.winnerSide) showGameOverModal();
+      }
+      if (isAdmin()) loadPlayers();
     }
 
     function switchAuthMode(mode) {
       authMode = mode;
       const tabLogin = document.getElementById('tabLogin');
       const tabRegister = document.getElementById('tabRegister');
-      const nameField = document.getElementById('displayNameField');
-      const submitBtn = document.getElementById('btnAuthSubmit');
-      const errEl = document.getElementById('authError');
-      errEl.classList.add('hidden');
-
-      if (mode === 'login') {
-        tabLogin.className = 'py-1.5 rounded-lg text-xs font-bold bg-[#6b3919] text-[#ffefd4] shadow transition';
-        tabRegister.className = 'py-1.5 rounded-lg text-xs font-bold text-[#45210c] hover:bg-[#d8bc8c]/60 transition';
-        nameField.classList.add('hidden');
-        submitBtn.textContent = 'Đăng nhập & Vào bàn cờ';
-      } else {
-        tabRegister.className = 'py-1.5 rounded-lg text-xs font-bold bg-[#6b3919] text-[#ffefd4] shadow transition';
-        tabLogin.className = 'py-1.5 rounded-lg text-xs font-bold text-[#45210c] hover:bg-[#d8bc8c]/60 transition';
-        nameField.classList.remove('hidden');
-        submitBtn.textContent = 'Đăng ký & Vào bàn cờ';
-      }
+      const on = 'py-1.5 rounded-lg text-xs font-bold bg-[#6b3919] text-[#ffefd4] shadow transition';
+      const off = 'py-1.5 rounded-lg text-xs font-bold text-[#45210c] hover:bg-[#d8bc8c]/60 transition';
+      tabLogin.className = mode === 'login' ? on : off;
+      tabRegister.className = mode === 'login' ? off : on;
+      document.getElementById('displayNameField').classList.toggle('hidden', mode === 'login');
+      document.getElementById('authPassword').autocomplete = mode === 'login' ? 'current-password' : 'new-password';
+      document.getElementById('btnAuthSubmit').textContent =
+        mode === 'login' ? 'Đăng nhập & Vào bàn cờ' : 'Gửi đăng ký';
+      showAuthError('');
     }
 
     document.getElementById('tabLogin').addEventListener('click', () => switchAuthMode('login'));
     document.getElementById('tabRegister').addEventListener('click', () => switchAuthMode('register'));
 
-    document.getElementById('authForm').addEventListener('submit', (e) => {
+    document.getElementById('authForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const accountRaw = document.getElementById('authAccount').value.trim();
-      const passwordRaw = document.getElementById('authPassword').value;
-      const nameRaw = document.getElementById('authName').value.trim();
-      const errEl = document.getElementById('authError');
+      const email = document.getElementById('authAccount').value.trim().toLowerCase();
+      const password = document.getElementById('authPassword').value;
+      const name = document.getElementById('authName').value.trim();
+      const submitBtn = document.getElementById('btnAuthSubmit');
+      showAuthError('');
 
-      errEl.classList.add('hidden');
+      if (!sb) return showAuthError('App chưa được cấu hình Supabase hoặc không tải được thư viện.');
+      if (!/^\S+@\S+\.\S+$/.test(email)) return showAuthError('Vui lòng nhập email hợp lệ.');
+      if (password.length < 6) return showAuthError('Mật khẩu phải có ít nhất 6 ký tự.');
 
-      if (accountRaw.length < 3) {
-        errEl.textContent = 'Tên đăng nhập / Email phải có ít nhất 3 ký tự.';
-        errEl.classList.remove('hidden');
-        return;
-      }
-      if (passwordRaw.length < 4) {
-        errEl.textContent = 'Mật khẩu phải có ít nhất 4 ký tự.';
-        errEl.classList.remove('hidden');
-        return;
-      }
-
-      const normalizedAccount = accountRaw.toLowerCase();
-      const accounts = loadAccounts();
-
-      if (authMode === 'register') {
-        if (accounts.some(acc => acc.account === normalizedAccount)) {
-          errEl.textContent = 'Tài khoản này đã tồn tại. Vui lòng chuyển sang Đăng nhập.';
-          errEl.classList.remove('hidden');
-          return;
-        }
-        const newAcc = {
-          account: normalizedAccount,
-          displayAccount: accountRaw,
-          name: nameRaw || accountRaw,
-          password: passwordRaw,
-          createdAt: Date.now()
-        };
-        accounts.push(newAcc);
-        saveAccounts(accounts);
-        currentUser = { account: newAcc.account, name: newAcc.name };
-        setActiveSession(currentUser);
-      } else {
-        const found = accounts.find(acc => acc.account === normalizedAccount);
-        if (!found) {
-          errEl.textContent = 'Tài khoản chưa tồn tại. Hãy bấm tab Đăng ký để tạo tài khoản mới.';
-          errEl.classList.remove('hidden');
-          return;
-        }
-        if (found.password !== passwordRaw) {
-          errEl.textContent = 'Mật khẩu không chính xác.';
-          errEl.classList.remove('hidden');
-          return;
-        }
-        currentUser = { account: found.account, name: found.name || found.displayAccount || found.account };
-        setActiveSession(currentUser);
-      }
-
-      // Tự động bật nhạc nền khi người dùng vừa tương tác đăng nhập nếu chưa tắt chủ động
-      if (localStorage.getItem(MUSIC_PREF_KEY) === null) {
-        setMusicEnabled(true);
-      } else {
-        ensureMusicOnFirstInteraction();
-      }
-
+      // Phát âm thanh & nhạc ngay trong thao tác bấm của người dùng
       sfx.playSelect();
-      syncAuthGateUI();
+      let musicPref = null;
+      try { musicPref = localStorage.getItem(MUSIC_PREF_KEY); } catch (err) {}
+      if (musicPref === null) setMusicEnabled(true); else ensureMusicOnFirstInteraction();
+
+      submitBtn.disabled = true;
+      try {
+        const { data, error } = authMode === 'register'
+          ? await sb.auth.signUp({ email, password, options: { data: { display_name: name }, emailRedirectTo: location.origin + location.pathname } })
+          : await sb.auth.signInWithPassword({ email, password });
+        if (error) return showAuthError(viError(error));
+        document.getElementById('authPassword').value = '';
+        if (authMode === 'register' && !data.session) {
+          switchAuthMode('login');
+          return showAuthError('Hãy kiểm tra hộp thư để xác nhận email, sau đó đăng nhập. (Nếu email đã đăng ký trước đó, chỉ cần đăng nhập.)');
+        }
+        await refreshProfile();
+      } catch (err) {
+        showAuthError(viError(err));
+      } finally {
+        submitBtn.disabled = false;
+      }
     });
 
-    btnLogoutEl.addEventListener('click', () => {
+    async function logout() {
+      if (sb) await sb.auth.signOut({ scope: 'local' });
       currentUser = null;
-      setActiveSession(null);
-      selected = null;
-      validMoves = [];
+      players = [];
       document.getElementById('authPassword').value = '';
+      showAuthError('');
       syncAuthGateUI();
+    }
+
+    btnLogoutEl.addEventListener('click', logout);
+    document.getElementById('btnNoticeLogout').addEventListener('click', logout);
+    document.getElementById('btnNoticeCheck').addEventListener('click', refreshProfile);
+
+    /* ---------- Trang Quản trị ---------- */
+    const STATUS_LABEL = { pending: 'Chờ duyệt', approved: 'Đã duyệt', rejected: 'Từ chối', locked: 'Đã khóa' };
+    const ADMIN_TABS = [['pending', 'Chờ duyệt'], ['approved', 'Đã duyệt'], ['blocked', 'Khóa/Từ chối'], ['all', 'Tất cả']];
+    let players = [];
+    let adminFilter = 'pending';
+
+    function showAdminMessage(msg) {
+      const el = document.getElementById('adminMessage');
+      el.textContent = msg || '';
+      el.classList.toggle('hidden', !msg);
+    }
+
+    async function loadPlayers() {
+      if (!sb || !isAdmin()) return;
+      const all = [];
+      for (let from = 0; ; from += 1000) {
+        const { data, error } = await sb.from('profiles')
+          .select('id,email,display_name,role,status,created_at')
+          .order('created_at', { ascending: false })
+          .order('id')
+          .range(from, from + 999);
+        if (error) return showAdminMessage(viError(error));
+        all.push(...data);
+        if (data.length < 1000) break;
+      }
+      players = all;
+      renderAdmin();
+    }
+
+    function inFilter(p, f) {
+      if (f === 'all') return true;
+      if (f === 'blocked') return p.status === 'locked' || p.status === 'rejected';
+      return p.status === f;
+    }
+
+    function makeEl(tag, className, text) {
+      const el = document.createElement(tag);
+      el.className = className;
+      if (text !== undefined) el.textContent = text;
+      return el;
+    }
+
+    function renderAdmin() {
+      const pending = players.filter(p => p.status === 'pending').length;
+      const badge = document.getElementById('adminBadge');
+      badge.textContent = pending;
+      badge.classList.toggle('hidden', pending === 0);
+
+      const tabs = document.getElementById('adminTabs');
+      tabs.replaceChildren(...ADMIN_TABS.map(([key, label]) => {
+        const b = makeEl('button',
+          'py-1.5 rounded-lg text-[11px] font-bold ' + (key === adminFilter ? 'bg-[#6b3919] text-[#ffefd4]' : 'text-[#45210c]'),
+          `${label} (${players.filter(p => inFilter(p, key)).length})`);
+        b.type = 'button';
+        b.addEventListener('click', () => { adminFilter = key; renderAdmin(); });
+        return b;
+      }));
+
+      const q = document.getElementById('adminSearch').value.trim().toLowerCase();
+      const rows = players.filter(p => inFilter(p, adminFilter) &&
+        (!q || p.display_name.toLowerCase().includes(q) || p.email.toLowerCase().includes(q)));
+      const list = document.getElementById('adminList');
+      if (!rows.length) {
+        list.replaceChildren(makeEl('p', 'text-xs text-center text-[#6e4626] py-6', 'Không có kỳ thủ nào.'));
+        return;
+      }
+
+      const scrollPos = list.scrollTop;
+      list.replaceChildren(...rows.map(p => {
+        const card = makeEl('div', 'shrink-0 rounded-xl border border-[#b5833e]/70 bg-[#fffaf0]/90 p-2.5');
+        card.append(
+          makeEl('div', 'text-sm font-bold text-[#331908] break-words', p.display_name),
+          makeEl('div', 'text-[11px] text-[#6e4626] break-all', p.email),
+          makeEl('div', 'text-[11px] text-[#6e4626]',
+            `${p.role === 'admin' ? 'Quản trị' : STATUS_LABEL[p.status]} · Đăng ký ${new Date(p.created_at).toLocaleString('vi-VN')}`)
+        );
+        if (p.role !== 'admin') {
+          const actions = makeEl('div', 'flex flex-wrap gap-1.5 mt-2');
+          const add = (label, danger, handler) => {
+            const b = makeEl('button', danger
+              ? 'px-3 py-1.5 rounded-lg text-xs font-bold border border-red-400 bg-red-100 text-red-800'
+              : 'wood-btn px-3 py-1.5 rounded-lg text-xs font-bold', label);
+            b.type = 'button';
+            b.addEventListener('click', async () => { b.disabled = true; await handler(); b.disabled = false; });
+            actions.appendChild(b);
+          };
+          const setStatus = (status) => adminCall('admin_set_status', { target: p.id, new_status: status });
+          if (p.status === 'pending') {
+            add('Duyệt', false, () => setStatus('approved'));
+            add('Từ chối', true, () => setStatus('rejected'));
+          } else if (p.status === 'approved') {
+            add('Khóa', true, () => setStatus('locked'));
+          } else {
+            add(p.status === 'locked' ? 'Mở khóa' : 'Duyệt lại', false, () => setStatus('approved'));
+          }
+          add('Xóa', true, async () => {
+            if (confirm(`Xóa vĩnh viễn tài khoản ${p.email}?`)) await adminCall('admin_delete_user', { target: p.id });
+          });
+          card.appendChild(actions);
+        }
+        return card;
+      }));
+      list.scrollTop = scrollPos;
+    }
+
+    async function adminCall(fn, args) {
+      showAdminMessage('');
+      const { error } = await sb.rpc(fn, args);
+      if (error) showAdminMessage(viError(error));
+      await loadPlayers();
+    }
+
+    function closeAdmin() {
+      adminModalEl.classList.add('hidden');
+      adminModalEl.classList.remove('flex');
+    }
+
+    btnAdminEl.addEventListener('click', () => {
+      showAdminMessage('');
+      adminModalEl.classList.remove('hidden');
+      adminModalEl.classList.add('flex');
+      renderAdmin();
+      loadPlayers();
     });
+    document.getElementById('btnAdminClose').addEventListener('click', closeAdmin);
+    document.getElementById('btnAdminRefresh').addEventListener('click', () => { showAdminMessage(''); loadPlayers(); });
+    document.getElementById('adminSearch').addEventListener('input', renderAdmin);
 
     document.getElementById('btnMusicToggle').addEventListener('click', () => {
       setMusicEnabled(!musicEnabled);
@@ -1854,6 +2042,7 @@
       if (!document.hidden) {
         loadState();
         renderBoard();
+        refreshProfile();
         if (musicEnabled && bgmAudio.paused) {
           bgmAudio.play().then(updateMusicUI).catch(() => {});
         }
@@ -1864,13 +2053,24 @@
 
     window.addEventListener('DOMContentLoaded', () => {
       drawStarMarks();
-      const restored = loadState();
-      syncAuthGateUI();
+      loadState();
       updateMusicUI();
-      if (isAuthenticated() && restored && state.gameOver && state.winnerSide) {
-        showGameOverModal();
-      }
       setInterval(updateClocksAndPlaques, 250);
+      syncAuthGateUI();
+
+      if (!sb) {
+        showAuthError('App chưa được cấu hình Supabase hoặc không tải được thư viện.');
+        return;
+      }
+      refreshProfile();
+      // Cập nhật định kỳ: người chờ duyệt tự vào được, tài khoản bị khóa bị đưa ra
+      setInterval(() => { if (!document.hidden && currentUser) refreshProfile(); }, 20000);
+      sb.auth.onAuthStateChange((event) => {
+        if (event === 'SIGNED_OUT' && currentUser) {
+          currentUser = null;
+          syncAuthGateUI();
+        }
+      });
     });
   </script>
 </body>
