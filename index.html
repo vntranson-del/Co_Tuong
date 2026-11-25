@@ -1,0 +1,1877 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Cờ Tướng Cổ Phong - Thiên Thiên Kỳ Đạo</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font thư pháp Hán tự & Tiếng Việt cổ điển -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@700;900&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --silk-light: #f6ebd4;
+      --silk-mid: #e6d1aa;
+      --silk-dark: #cbb082;
+      --wood-frame-dark: #45210c;
+      --wood-frame-mid: #743f1e;
+      --wood-frame-light: #9e5d33;
+      --gold-trim: #d9a75a;
+      --gold-bright: #fce29c;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      min-height: 100dvh;
+      background-color: var(--silk-mid);
+      font-family: 'Playfair Display', Georgia, serif;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      color: #3a1d0b;
+    }
+
+    /* Nền lụa vàng ngà cổ điển & vân giấy */
+    .silk-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse at 50% 42%, rgba(255, 248, 232, 0.78) 0%, rgba(232, 211, 173, 0.88) 62%, rgba(196, 167, 118, 0.98) 100%);
+    }
+
+    .silk-weave {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      opacity: 0.28;
+      background-image:
+        repeating-linear-gradient(0deg, rgba(138, 102, 58, 0.08) 0px, rgba(138, 102, 58, 0.08) 1px, transparent 1px, transparent 4px),
+        repeating-linear-gradient(90deg, rgba(138, 102, 58, 0.06) 0px, rgba(138, 102, 58, 0.06) 1px, transparent 1px, transparent 4px);
+    }
+
+    .hanzi-font {
+      font-family: 'Noto Serif SC', 'Ma Shan Zheng', 'KaiTi', 'STKaiti', serif;
+      font-weight: 900;
+    }
+
+    .river-calligraphy {
+      font-family: 'Noto Serif SC', 'Ma Shan Zheng', 'KaiTi', serif;
+      font-weight: 700;
+      letter-spacing: 0.16em;
+    }
+
+    /* Thẻ bài người chơi cổ phong viền vàng đồng */
+    .ancient-plaque {
+      background: linear-gradient(180deg, rgba(255, 248, 234, 0.94) 0%, rgba(239, 220, 185, 0.94) 100%);
+      border: 1.5px solid #b5833e;
+      box-shadow:
+        0 6px 16px rgba(46, 22, 7, 0.22),
+        inset 0 1px 1px rgba(255, 255, 255, 0.9),
+        inset 0 0 0 2px rgba(217, 167, 90, 0.28);
+      transition: all 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .ancient-plaque.active-turn {
+      background: linear-gradient(180deg, #fffdf7 0%, #f9e8c6 100%);
+      border-color: #d99b38;
+      box-shadow:
+        0 0 0 2px rgba(245, 194, 92, 0.55),
+        0 10px 22px rgba(56, 26, 6, 0.32),
+        inset 0 1px 2px #ffffff;
+      transform: translateY(-1px);
+    }
+
+    /* Đồng hồ 90s phong cách khắc thẻ bài */
+    .ancient-timer {
+      font-variant-numeric: tabular-nums;
+      background: linear-gradient(180deg, #5e3317 0%, #3d1e0b 100%);
+      color: #fce8c3;
+      border: 1.5px solid #c99349;
+      box-shadow:
+        inset 0 2px 4px rgba(0, 0, 0, 0.65),
+        0 1px 1px rgba(255, 255, 255, 0.6);
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+    }
+
+    .ancient-plaque:not(.active-turn) .ancient-timer {
+      background: linear-gradient(180deg, #cbb38b 0%, #b59a6e 100%);
+      color: #4a2c14;
+      border-color: #96784c;
+      box-shadow: inset 0 1px 3px rgba(60, 35, 12, 0.25);
+      text-shadow: none;
+    }
+
+    .timer-danger {
+      background: linear-gradient(180deg, #dc2626 0%, #8f1111 100%) !important;
+      color: #ffffff !important;
+      border-color: #fef08a !important;
+      animation: timerPulse 0.65s infinite alternate;
+    }
+
+    @keyframes timerPulse {
+      from { transform: scale(1); box-shadow: 0 0 6px rgba(220, 38, 38, 0.75); }
+      to { transform: scale(1.07); box-shadow: 0 0 16px rgba(239, 68, 68, 1); }
+    }
+
+    /* Khung bàn cờ gỗ chạm khắc cổ điển 3D */
+    .wooden-board-frame {
+      position: relative;
+      padding: clamp(16px, 3.6vw, 24px) clamp(15px, 3.4vw, 22px) clamp(20px, 4.2vw, 28px);
+      border-radius: 18px;
+      background:
+        repeating-linear-gradient(
+          92deg,
+          rgba(32, 13, 4, 0.09) 0px,
+          rgba(32, 13, 4, 0.09) 2px,
+          transparent 2px,
+          transparent 11px
+        ),
+        linear-gradient(145deg, #9c5b31 0%, #733e1d 32%, #4f2710 68%, #804723 100%);
+      box-shadow:
+        0 24px 44px -10px rgba(34, 15, 4, 0.68),
+        0 10px 20px rgba(34, 15, 4, 0.42),
+        inset 0 2px 3px rgba(255, 221, 173, 0.55),
+        inset 0 -5px 10px rgba(22, 8, 2, 0.88);
+      border: 2.5px solid #381808;
+    }
+
+    .wooden-inner-bevel {
+      position: relative;
+      border-radius: 9px;
+      padding: clamp(5px, 1.3vw, 9px);
+      background: linear-gradient(180deg, #3c1b09 0%, #5c2f15 100%);
+      box-shadow:
+        inset 0 3px 9px rgba(0, 0, 0, 0.82),
+        0 1px 1px rgba(255, 218, 170, 0.32);
+    }
+
+    .board-surface {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 9 / 10;
+      border-radius: 5px;
+      background:
+        repeating-linear-gradient(
+          90deg,
+          rgba(161, 113, 58, 0.07) 0px,
+          rgba(161, 113, 58, 0.07) 2px,
+          transparent 2px,
+          transparent 8px
+        ),
+        radial-gradient(circle at 50% 48%, #f2dec0 0%, #e4c696 72%, #d2ac73 100%);
+      box-shadow: inset 0 0 22px rgba(84, 46, 18, 0.36);
+    }
+
+    /* Quân cờ đĩa 3D cao cấp (Đế dày đỏ son / đen mun + mặt ngà voi bóng nhẹ) */
+    .xiangqi-piece {
+      position: absolute;
+      transform: translate(-50%, -53%);
+      border-radius: 50%;
+      cursor: pointer;
+      transition: transform 0.16s cubic-bezier(0.22, 1, 0.36, 1), filter 0.16s ease;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .piece-body {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 34% 26%, #fffdf7 0%, #f7e9cd 58%, #e2c799 92%, #cfa972 100%);
+      transition: box-shadow 0.16s ease;
+    }
+
+    /* Đế dày màu đỏ son cho bên Đỏ */
+    .piece-red .piece-body {
+      box-shadow:
+        0 4px 0 #a11b17,
+        0 6.5px 0 #6e0f0c,
+        0 10px 13px rgba(28, 11, 4, 0.58),
+        inset 0 2px 3px rgba(255, 255, 255, 0.95),
+        inset 0 -2px 4px rgba(161, 27, 23, 0.35);
+      border: 1.5px solid #bd2620;
+      color: #a81915;
+    }
+
+    /* Đế dày màu đen mun cho bên Đen */
+    .piece-black .piece-body {
+      box-shadow:
+        0 4px 0 #2f2722,
+        0 6.5px 0 #14100d,
+        0 10px 13px rgba(20, 10, 4, 0.62),
+        inset 0 2px 3px rgba(255, 255, 255, 0.9),
+        inset 0 -2px 4px rgba(34, 29, 26, 0.4);
+      border: 1.5px solid #38302b;
+      color: #1f1a17;
+    }
+
+    .piece-ring-outer {
+      width: 84%;
+      height: 84%;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .piece-red .piece-ring-outer {
+      border: 1.8px solid rgba(168, 25, 21, 0.88);
+      box-shadow: inset 0 0 0 1.2px rgba(255, 252, 244, 0.65);
+    }
+
+    .piece-black .piece-ring-outer {
+      border: 1.8px solid rgba(31, 26, 23, 0.88);
+      box-shadow: inset 0 0 0 1.2px rgba(255, 252, 244, 0.65);
+    }
+
+    .piece-ring-inner {
+      width: 87%;
+      height: 87%;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .piece-red .piece-ring-inner {
+      border: 1px solid rgba(168, 25, 21, 0.48);
+    }
+
+    .piece-black .piece-ring-inner {
+      border: 1px solid rgba(31, 26, 23, 0.48);
+    }
+
+    .piece-char {
+      line-height: 1;
+      transform: translateY(-3%);
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
+    }
+
+    /* Hào quang vàng khi chọn quân */
+    .xiangqi-piece.selected {
+      transform: translate(-50%, -66%) scale(1.09);
+      z-index: 35;
+    }
+
+    .piece-red.selected .piece-body {
+      box-shadow:
+        0 7px 0 #a11b17,
+        0 9.5px 0 #6e0f0c,
+        0 0 18px 6px rgba(252, 211, 77, 0.95),
+        0 14px 22px rgba(0, 0, 0, 0.5),
+        inset 0 2px 4px #ffffff;
+    }
+
+    .piece-black.selected .piece-body {
+      box-shadow:
+        0 7px 0 #2f2722,
+        0 9.5px 0 #14100d,
+        0 0 18px 6px rgba(252, 211, 77, 0.95),
+        0 14px 22px rgba(0, 0, 0, 0.5),
+        inset 0 2px 4px #ffffff;
+    }
+
+    /* Tướng bị chiếu */
+    .xiangqi-piece.in-check .piece-body {
+      animation: pulseCheck 0.85s infinite alternate;
+    }
+
+    @keyframes pulseCheck {
+      from {
+        box-shadow: 0 4px 0 #8a1613, 0 0 8px 3px rgba(239, 68, 68, 0.75);
+      }
+      to {
+        box-shadow: 0 4px 0 #8a1613, 0 0 22px 9px rgba(220, 38, 38, 1);
+      }
+    }
+
+    /* Chấm xanh phát sáng chỉ nước đi hợp lệ */
+    .move-dot {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      width: 24%;
+      height: 24%;
+      max-width: 16px;
+      max-height: 16px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #ecfdf5 0%, #34d399 52%, #059669 100%);
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.95), 0 2px 4px rgba(0, 0, 0, 0.45);
+      z-index: 25;
+      pointer-events: none;
+      animation: dotPulse 1.2s infinite ease-in-out;
+    }
+
+    /* Vòng cam xoay quanh quân đối phương có thể ăn */
+    .capture-ring {
+      position: absolute;
+      transform: translate(-50%, -53%);
+      border-radius: 50%;
+      border: 3px dashed #f59e0b;
+      box-shadow: 0 0 14px rgba(245, 158, 11, 0.98);
+      z-index: 30;
+      pointer-events: none;
+      animation: spinRing 5s linear infinite;
+    }
+
+    @keyframes dotPulse {
+      0%, 100% { transform: translate(-50%, -50%) scale(0.9); opacity: 0.9; }
+      50% { transform: translate(-50%, -50%) scale(1.18); opacity: 1; }
+    }
+
+    @keyframes spinRing {
+      from { transform: translate(-50%, -53%) rotate(0deg); }
+      to { transform: translate(-50%, -53%) rotate(360deg); }
+    }
+
+    /* Vòng đánh dấu nước vừa đi (điểm xuất phát & điểm đến) */
+    .last-move-origin {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.95);
+      background: rgba(16, 185, 129, 0.45);
+      box-shadow: 0 0 9px rgba(16, 185, 129, 0.95);
+      z-index: 15;
+      pointer-events: none;
+    }
+
+    .last-move-origin::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #ffffff;
+    }
+
+    .xiangqi-piece.last-moved .piece-ring-outer {
+      box-shadow: 0 0 0 2.5px #10b981, inset 0 0 0 1.2px rgba(255, 252, 244, 0.7);
+    }
+
+    /* Nút bấm gỗ chạm viền vàng đồng */
+    .wood-btn {
+      background: linear-gradient(180deg, #854b27 0%, #582d13 100%);
+      color: #ffefd4;
+      border: 1.5px solid #c99349;
+      box-shadow:
+        0 4px 8px rgba(36, 16, 5, 0.42),
+        inset 0 1px 1px rgba(255, 232, 194, 0.45);
+      transition: all 0.15s ease;
+    }
+
+    .wood-btn:hover:not(:disabled) {
+      background: linear-gradient(180deg, #99582f 0%, #693617 100%);
+      border-color: #fce29c;
+      transform: translateY(-1px);
+    }
+
+    .wood-btn:active:not(:disabled) {
+      transform: translateY(1px);
+      box-shadow: 0 1px 3px rgba(36, 16, 5, 0.5);
+    }
+
+    .wood-btn:disabled {
+      opacity: 0.48;
+      cursor: not-allowed;
+    }
+
+    .file-number {
+      font-family: 'Playfair Display', serif;
+      font-weight: 700;
+      color: #fbe5c0;
+      text-shadow: 0 1px 2px rgba(24, 9, 2, 0.9);
+      font-size: clamp(10px, 2.3vw, 13px);
+      line-height: 1;
+    }
+
+    /* Màn hình khóa cổng Đăng nhập / Đăng ký */
+    .auth-gate {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      background:
+        radial-gradient(circle at 50% 35%, rgba(69, 33, 12, 0.72) 0%, rgba(28, 12, 4, 0.9) 100%);
+      backdrop-filter: blur(5px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .auth-input {
+      user-select: text;
+      -webkit-user-select: text;
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1.5px solid #b5833e;
+      background: rgba(255, 252, 244, 0.95);
+      color: #3a1d0b;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .auth-input:focus {
+      border-color: #d99b38;
+      box-shadow: 0 0 0 3px rgba(217, 155, 56, 0.25);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Nhạc nền file MP3 của bạn (đặt cùng thư mục hoặc đường dẫn tương ứng trên GitHub) -->
+  <audio id="bgmAudio" src="./kiem_hiep_tinh_duyen.mp3" loop preload="auto"></audio>
+
+  <!-- Nền lụa cổ & tranh thủy mặc -->
+  <div class="silk-backdrop"></div>
+  <div class="silk-weave"></div>
+
+  <!-- Tranh thủy mặc nghệ thuật SVG sắc nét -->
+  <svg class="fixed inset-0 w-full h-full pointer-events-none z-[2]" viewBox="0 0 800 1400" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <linearGradient id="mountainFar" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#8c7e65" stop-opacity="0.32"/>
+        <stop offset="100%" stop-color="#e6d1aa" stop-opacity="0.02"/>
+      </linearGradient>
+      <linearGradient id="mountainNear" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#695c45" stop-opacity="0.46"/>
+        <stop offset="100%" stop-color="#e6d1aa" stop-opacity="0.06"/>
+      </linearGradient>
+      <linearGradient id="riverWater" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#9e8f73" stop-opacity="0.18"/>
+        <stop offset="50%" stop-color="#f7ecd6" stop-opacity="0.42"/>
+        <stop offset="100%" stop-color="#8c7d62" stop-opacity="0.22"/>
+      </linearGradient>
+      <radialGradient id="peachBlossom" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#fff5f7"/>
+        <stop offset="60%" stop-color="#f08a96"/>
+        <stop offset="100%" stop-color="#c24152"/>
+      </radialGradient>
+      <radialGradient id="pineNeedle" cx="50%" cy="40%" r="55%">
+        <stop offset="0%" stop-color="#4e6b5e"/>
+        <stop offset="70%" stop-color="#31473e"/>
+        <stop offset="100%" stop-color="#1f2e28"/>
+      </radialGradient>
+    </defs>
+
+    <!-- Dãy núi non sương mù mờ ảo phía dưới -->
+    <path d="M-40,1010 Q110,865 260,970 T580,915 T860,995 L860,1420 L-40,1420 Z" fill="url(#mountainFar)"/>
+    <path d="M-40,1090 Q85,950 220,1055 T500,1010 T850,1085 L850,1420 L-40,1420 Z" fill="url(#mountainNear)"/>
+    <!-- Dải sông sương mờ -->
+    <path d="M-20,1155 Q240,1135 480,1168 T840,1145 L840,1275 Q520,1295 260,1265 T-20,1285 Z" fill="url(#riverWater)"/>
+
+    <!-- Đình chùa cổ kính ven sông góc dưới trái -->
+    <g transform="translate(34, 1018) scale(1.02)" opacity="0.72" fill="#4f402d">
+      <rect x="24" y="102" width="102" height="8" rx="2"/>
+      <rect x="34" y="93" width="82" height="9" rx="1.5"/>
+      <rect x="44" y="55" width="5" height="38"/>
+      <rect x="63" y="55" width="4.5" height="38"/>
+      <rect x="82" y="55" width="4.5" height="38"/>
+      <rect x="101" y="55" width="5" height="38"/>
+      <rect x="40" y="79" width="70" height="3.5"/>
+      <path d="M14,57 Q75,43 136,57 Q108,39 75,33 Q42,39 14,57 Z"/>
+      <rect x="55" y="24" width="40" height="11"/>
+      <path d="M28,26 Q75,15 122,26 Q98,10 75,3 Q52,10 28,26 Z"/>
+      <circle cx="75" cy="0" r="3.2"/>
+    </g>
+
+    <!-- Thuyền nan câu cá trên sông -->
+    <g transform="translate(278, 1148) scale(0.9)" opacity="0.56" fill="#524330">
+      <path d="M0,12 Q38,22 82,10 Q56,16 0,12 Z"/>
+      <circle cx="28" cy="3" r="3.8"/>
+      <path d="M22,12 L28,6 L34,12 Z"/>
+      <line x1="33" y1="7" x2="58" y2="-6" stroke="#524330" stroke-width="1.3"/>
+      <line x1="58" y1="-6" x2="58" y2="14" stroke="#524330" stroke-width="0.7" stroke-dasharray="2,2"/>
+    </g>
+
+    <!-- Cành tùng xanh rêu vươn ra ở góc trên trái -->
+    <g opacity="0.92">
+      <path d="M-24,105 Q62,94 126,56 Q190,20 272,29 Q342,38 412,12" fill="none" stroke="#382619" stroke-width="15" stroke-linecap="round"/>
+      <path d="M92,72 Q158,88 232,78" fill="none" stroke="#453020" stroke-width="8.5" stroke-linecap="round"/>
+      <path d="M168,36 Q216,-6 284,-12" fill="none" stroke="#453020" stroke-width="7.5" stroke-linecap="round"/>
+      <g fill="url(#pineNeedle)">
+        <ellipse cx="72" cy="48" rx="56" ry="19" transform="rotate(-12 72 48)"/>
+        <ellipse cx="146" cy="25" rx="62" ry="20" transform="rotate(-6 146 25)"/>
+        <ellipse cx="236" cy="18" rx="68" ry="21" transform="rotate(4 236 18)"/>
+        <ellipse cx="336" cy="15" rx="58" ry="17" transform="rotate(-8 336 15)"/>
+        <ellipse cx="202" cy="72" rx="52" ry="16" transform="rotate(6 202 72)"/>
+        <ellipse cx="42" cy="86" rx="48" ry="16" transform="rotate(-15 42 86)"/>
+      </g>
+      <g fill="#618273" opacity="0.58">
+        <ellipse cx="80" cy="42" rx="40" ry="11" transform="rotate(-12 80 42)"/>
+        <ellipse cx="154" cy="19" rx="44" ry="12" transform="rotate(-6 154 19)"/>
+        <ellipse cx="242" cy="13" rx="48" ry="13" transform="rotate(4 242 13)"/>
+        <ellipse cx="208" cy="67" rx="36" ry="10" transform="rotate(6 208 67)"/>
+      </g>
+    </g>
+
+    <!-- Cành hoa đào hồng phấn nở rộ & cánh hoa rơi ở góc trên phải -->
+    <g opacity="0.94">
+      <path d="M828,44 Q732,70 652,48 Q590,32 536,56" fill="none" stroke="#47281e" stroke-width="7.5" stroke-linecap="round"/>
+      <path d="M724,58 Q672,96 608,110" fill="none" stroke="#573226" stroke-width="4.8" stroke-linecap="round"/>
+      <path d="M662,48 Q626,16 578,10" fill="none" stroke="#573226" stroke-width="3.8" stroke-linecap="round"/>
+
+      <g transform="translate(652,48)">
+        <circle cx="0" cy="-8.5" r="7.5" fill="url(#peachBlossom)"/>
+        <circle cx="8.5" cy="-2" r="7.5" fill="url(#peachBlossom)"/>
+        <circle cx="5.5" cy="7.5" r="7.5" fill="url(#peachBlossom)"/>
+        <circle cx="-5.5" cy="7.5" r="7.5" fill="url(#peachBlossom)"/>
+        <circle cx="-8.5" cy="-2" r="7.5" fill="url(#peachBlossom)"/>
+        <circle cx="0" cy="0" r="3.6" fill="#8f1d2c"/>
+      </g>
+      <g transform="translate(722,62) scale(1.2)">
+        <circle cx="0" cy="-8.5" r="7.5" fill="url(#peachBlossom)"/>
+        <circle cx="8.5" cy="-2" r="7.5" fill="url(#peachBlossom)"/>
+        <circle cx="5.5" cy="7.5" r="7.5" fill="url(#peachBlossom)"/>
+        <circle cx="-5.5" cy="7.5" r="7.5" fill="url(#peachBlossom)"/>
+        <circle cx="-8.5" cy="-2" r="7.5" fill="url(#peachBlossom)"/>
+        <circle cx="0" cy="0" r="3.6" fill="#8f1d2c"/>
+      </g>
+      <g transform="translate(610,108) scale(0.95)">
+        <circle cx="0" cy="-8.5" r="7.5" fill="url(#peachBlossom)"/>
+        <circle cx="8.5" cy="-2" r="7.5" fill="url(#peachBlossom)"/>
+        <circle cx="5.5" cy="7.5" r="7.5" fill="url(#peachBlossom)"/>
+        <circle cx="-5.5" cy="7.5" r="7.5" fill="url(#peachBlossom)"/>
+        <circle cx="-8.5" cy="-2" r="7.5" fill="url(#peachBlossom)"/>
+        <circle cx="0" cy="0" r="3.6" fill="#8f1d2c"/>
+      </g>
+      <g transform="translate(580,22) scale(0.85)">
+        <circle cx="0" cy="-8.5" r="7.5" fill="url(#peachBlossom)"/>
+        <circle cx="8.5" cy="-2" r="7.5" fill="url(#peachBlossom)"/>
+        <circle cx="5.5" cy="7.5" r="7.5" fill="url(#peachBlossom)"/>
+        <circle cx="-5.5" cy="7.5" r="7.5" fill="url(#peachBlossom)"/>
+        <circle cx="-8.5" cy="-2" r="7.5" fill="url(#peachBlossom)"/>
+        <circle cx="0" cy="0" r="3.6" fill="#8f1d2c"/>
+      </g>
+      <g transform="translate(768,100) scale(1.0)">
+        <circle cx="0" cy="-8.5" r="7.5" fill="url(#peachBlossom)"/>
+        <circle cx="8.5" cy="-2" r="7.5" fill="url(#peachBlossom)"/>
+        <circle cx="5.5" cy="7.5" r="7.5" fill="url(#peachBlossom)"/>
+        <circle cx="-5.5" cy="7.5" r="7.5" fill="url(#peachBlossom)"/>
+        <circle cx="-8.5" cy="-2" r="7.5" fill="url(#peachBlossom)"/>
+        <circle cx="0" cy="0" r="3.6" fill="#8f1d2c"/>
+      </g>
+
+      <ellipse cx="754" cy="186" rx="5.5" ry="3" fill="#e87482" transform="rotate(32 754 186)"/>
+      <ellipse cx="780" cy="278" rx="5" ry="2.7" fill="#e87482" transform="rotate(-24 780 278)"/>
+      <ellipse cx="520" cy="92" rx="4.5" ry="2.4" fill="#e87482" transform="rotate(45 520 92)"/>
+      <ellipse cx="688" cy="162" rx="4.2" ry="2.2" fill="#f08a96" transform="rotate(-18 688 162)"/>
+      <ellipse cx="26" cy="218" rx="4.8" ry="2.6" fill="#e87482" transform="rotate(-38 26 218)"/>
+    </g>
+  </svg>
+
+  <!-- Thanh tài khoản & nhạc nền trên cùng -->
+  <div class="relative z-10 w-full max-w-[480px] px-3 pt-2 flex items-center justify-between gap-2">
+    <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-[#fff8ea]/85 border border-[#b5833e]/80 text-xs font-bold text-[#47240d] truncate">
+      <span>Kỳ thủ:</span>
+      <span id="currentUserLabel" class="text-[#9e1b18] truncate">Chưa đăng nhập</span>
+    </div>
+
+    <div class="flex items-center gap-1.5 shrink-0">
+      <button id="btnMusicToggle" type="button" class="wood-btn px-2.5 py-1 rounded-xl text-[11px] font-bold flex items-center gap-1">
+        <span id="musicIcon">🎵</span>
+        <span id="musicLabel">Nhạc: Tắt</span>
+      </button>
+      <button id="btnLogout" type="button" class="px-2.5 py-1 rounded-xl border border-[#8f6d46] bg-[#e6d1ae]/90 text-[#45210c] text-[11px] font-bold hover:bg-[#d9be94] transition hidden">
+        Đăng xuất
+      </button>
+    </div>
+  </div>
+
+  <!-- Thẻ bài Bên Đen (Phía trên) -->
+  <header class="relative z-10 w-full max-w-[480px] px-3 pt-1 pb-1">
+    <div id="playerBlackPlaque" class="ancient-plaque rounded-2xl px-3.5 py-2 flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-full bg-gradient-to-b from-[#fffaf0] to-[#dfc394] border-2 border-[#2b231d] shadow-md flex items-center justify-center relative">
+          <div class="w-[82%] h-[82%] rounded-full border border-[#2b231d]/70 flex items-center justify-center">
+            <span class="hanzi-font text-lg text-[#1f1a17] leading-none">將</span>
+          </div>
+        </div>
+        <div class="flex flex-col leading-tight">
+          <div class="flex items-center gap-1.5">
+            <span class="text-sm font-bold text-[#331908]">Bên Đen</span>
+            <span id="blackCheckTag" class="hidden px-1.5 py-0.5 rounded bg-red-700 text-amber-100 text-[10px] font-extrabold tracking-wider animate-pulse">CHIẾU!</span>
+          </div>
+          <span id="blackStatus" class="text-[11px] font-medium text-[#6e4626]">Đang chờ lượt</span>
+        </div>
+      </div>
+
+      <div id="timerBlack" class="ancient-timer px-3 py-1 rounded-xl font-mono text-base font-extrabold tracking-wider">
+        01:30
+      </div>
+    </div>
+  </header>
+
+  <!-- Khu vực trung tâm: Bàn cờ gỗ chạm khắc cổ điển 3D -->
+  <main class="relative z-10 w-full flex-1 flex items-center justify-center px-2.5 sm:px-4 py-1">
+    <div class="w-full max-w-[470px]">
+      <div class="wooden-board-frame">
+        <!-- Hoa văn mây cổ (Cloud Fretwork) chạm khắc 4 góc khung gỗ -->
+        <svg class="absolute inset-0 w-full h-full pointer-events-none rounded-[16px]" viewBox="0 0 400 448" preserveAspectRatio="none">
+          <rect x="7" y="7" width="386" height="434" rx="12" fill="none" stroke="#2d1205" stroke-width="1.6" opacity="0.8"/>
+          <rect x="9.5" y="9.5" width="381" height="429" rx="10" fill="none" stroke="#e2a85c" stroke-width="0.9" opacity="0.5"/>
+
+          <g stroke="#e5ae62" stroke-width="1.35" fill="none" opacity="0.72" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M13,44 L13,18 Q13,13 18,13 L44,13 M18,36 L18,22 Q18,18 22,18 L36,18 M23,28 L23,23 L28,23"/>
+            <path d="M387,44 L387,18 Q387,13 382,13 L356,13 M382,36 L382,22 Q382,18 378,18 L364,18 M377,28 L377,23 L372,23"/>
+            <path d="M13,404 L13,430 Q13,435 18,435 L44,435 M18,412 L18,426 Q18,430 22,430 L36,430 M23,420 L23,425 L28,425"/>
+            <path d="M387,404 L387,430 Q387,435 382,435 L356,435 M382,412 L382,426 Q382,430 378,430 L364,430 M377,420 L377,425 L372,425"/>
+          </g>
+        </svg>
+
+        <div class="wooden-inner-bevel">
+          <div id="boardSurface" class="board-surface">
+            <svg id="boardGridSvg" class="w-full h-full block" viewBox="0 0 900 1000" xmlns="http://www.w3.org/2000/svg">
+              <rect x="43" y="43" width="814" height="914" fill="none" stroke="#472611" stroke-width="4.5"/>
+              <rect x="50" y="50" width="800" height="900" fill="none" stroke="#472611" stroke-width="2.2"/>
+
+              <g stroke="#4d2b14" stroke-width="2.2">
+                <line x1="50" y1="50" x2="850" y2="50"/>
+                <line x1="50" y1="150" x2="850" y2="150"/>
+                <line x1="50" y1="250" x2="850" y2="250"/>
+                <line x1="50" y1="350" x2="850" y2="350"/>
+                <line x1="50" y1="450" x2="850" y2="450"/>
+                <line x1="50" y1="550" x2="850" y2="550"/>
+                <line x1="50" y1="650" x2="850" y2="650"/>
+                <line x1="50" y1="750" x2="850" y2="750"/>
+                <line x1="50" y1="850" x2="850" y2="850"/>
+                <line x1="50" y1="950" x2="850" y2="950"/>
+              </g>
+
+              <g stroke="#4d2b14" stroke-width="2.2">
+                <line x1="50" y1="50" x2="50" y2="950"/>
+                <line x1="850" y1="50" x2="850" y2="950"/>
+                <line x1="150" y1="50" x2="150" y2="450"/>
+                <line x1="250" y1="50" x2="250" y2="450"/>
+                <line x1="350" y1="50" x2="350" y2="450"/>
+                <line x1="450" y1="50" x2="450" y2="450"/>
+                <line x1="550" y1="50" x2="550" y2="450"/>
+                <line x1="650" y1="50" x2="650" y2="450"/>
+                <line x1="750" y1="50" x2="750" y2="450"/>
+                <line x1="150" y1="550" x2="150" y2="950"/>
+                <line x1="250" y1="550" x2="250" y2="950"/>
+                <line x1="350" y1="550" x2="350" y2="950"/>
+                <line x1="450" y1="550" x2="450" y2="950"/>
+                <line x1="550" y1="550" x2="550" y2="950"/>
+                <line x1="650" y1="550" x2="650" y2="950"/>
+                <line x1="750" y1="550" x2="750" y2="950"/>
+              </g>
+
+              <g stroke="#4d2b14" stroke-width="2.2">
+                <line x1="350" y1="50" x2="550" y2="250"/>
+                <line x1="550" y1="50" x2="350" y2="250"/>
+                <line x1="350" y1="750" x2="550" y2="950"/>
+                <line x1="550" y1="750" x2="350" y2="950"/>
+              </g>
+
+              <g id="starMarksGroup" stroke="#4d2b14" stroke-width="2" fill="none"></g>
+
+              <text x="250" y="514" text-anchor="middle" fill="#6b4426" opacity="0.68" font-size="42" class="river-calligraphy">
+                楚 河
+              </text>
+              <text x="650" y="514" text-anchor="middle" fill="#6b4426" opacity="0.68" font-size="42" class="river-calligraphy">
+                漢 界
+              </text>
+            </svg>
+
+            <div id="boardInteractiveLayer" class="absolute inset-0"></div>
+          </div>
+        </div>
+
+        <!-- Dãy số đánh lộ từ 9 đến 1 dọc mép dưới bên Đỏ -->
+        <div class="w-full px-[6.5%] pt-1.5 flex justify-between items-center">
+          <span class="file-number">9</span>
+          <span class="file-number">8</span>
+          <span class="file-number">7</span>
+          <span class="file-number">6</span>
+          <span class="file-number">5</span>
+          <span class="file-number">4</span>
+          <span class="file-number">3</span>
+          <span class="file-number">2</span>
+          <span class="file-number">1</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Thẻ bài Bên Đỏ & Thanh điều khiển (Phía dưới) -->
+  <footer class="relative z-10 w-full max-w-[480px] px-3 pb-3 pt-1 flex flex-col gap-2">
+    <div id="playerRedPlaque" class="ancient-plaque active-turn rounded-2xl px-3.5 py-2 flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-full bg-gradient-to-b from-[#fffaf0] to-[#dfc394] border-2 border-[#a81915] shadow-md flex items-center justify-center relative">
+          <div class="w-[82%] h-[82%] rounded-full border border-[#a81915]/70 flex items-center justify-center">
+            <span class="hanzi-font text-lg text-[#a81915] leading-none">帥</span>
+          </div>
+        </div>
+        <div class="flex flex-col leading-tight">
+          <div class="flex items-center gap-1.5">
+            <span class="text-sm font-bold text-[#7d110e]">Bên Đỏ (Đi trước)</span>
+            <span id="redCheckTag" class="hidden px-1.5 py-0.5 rounded bg-red-700 text-amber-100 text-[10px] font-extrabold tracking-wider animate-pulse">CHIẾU!</span>
+          </div>
+          <span id="redStatus" class="text-[11px] font-medium text-[#6e4626]">Đang suy nghĩ...</span>
+        </div>
+      </div>
+
+      <div id="timerRed" class="ancient-timer px-3 py-1 rounded-xl font-mono text-base font-extrabold tracking-wider">
+        01:30
+      </div>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <div id="statusPill" class="flex-1 px-3 py-2 rounded-xl bg-[#fff8ea]/90 border border-[#b5833e] text-xs font-bold text-[#47240d] text-center shadow-sm truncate">
+        Vui lòng đăng nhập để vào bàn cờ
+      </div>
+
+      <button id="btnUndo" type="button" class="wood-btn px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shrink-0" disabled>
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3"/></svg>
+        <span>Xin đi lại</span>
+      </button>
+
+      <button id="btnNewGame" type="button" class="wood-btn px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shrink-0" disabled>
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        <span>Ván mới</span>
+      </button>
+    </div>
+  </footer>
+
+  <!-- Màn hình khóa Đăng nhập / Đăng ký tài khoản (Chặn vào bàn cờ khi chưa đăng nhập) -->
+  <div id="authGate" class="auth-gate">
+    <div class="w-full max-w-[370px] rounded-2xl bg-gradient-to-b from-[#fff9ec] to-[#f0dcb9] border-2 border-[#b5833e] shadow-2xl p-5">
+      <div class="text-center mb-4">
+        <div class="w-14 h-14 mx-auto mb-2 rounded-full bg-gradient-to-b from-[#9e1b18] to-[#680d0b] text-[#fff4dc] border-2 border-[#fce29c] flex items-center justify-center hanzi-font text-3xl shadow-lg">
+          弈
+        </div>
+        <h1 class="text-lg font-bold text-[#45210c]">Thiên Thiên Kỳ Đạo</h1>
+        <p class="text-xs text-[#6e4626] mt-0.5">Cần có tài khoản đăng nhập mới được vào bàn cờ</p>
+      </div>
+
+      <!-- Chuyển tab Đăng nhập / Đăng ký -->
+      <div class="grid grid-cols-2 gap-1.5 p-1 rounded-xl bg-[#e4cca2] border border-[#b5833e]/60 mb-4">
+        <button id="tabLogin" type="button" class="py-1.5 rounded-lg text-xs font-bold bg-[#6b3919] text-[#ffefd4] shadow transition">
+          Đăng nhập
+        </button>
+        <button id="tabRegister" type="button" class="py-1.5 rounded-lg text-xs font-bold text-[#45210c] hover:bg-[#d8bc8c]/60 transition">
+          Đăng ký
+        </button>
+      </div>
+
+      <form id="authForm" class="flex flex-col gap-3">
+        <div id="displayNameField" class="hidden">
+          <label class="block text-xs font-bold text-[#45210c] mb-1">Tên kỳ thủ</label>
+          <input id="authName" type="text" placeholder="Ví dụ: Vô Danh Kỳ Hữu" class="auth-input" autocomplete="nickname" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-[#45210c] mb-1">Tên đăng nhập hoặc Email</label>
+          <input id="authAccount" type="text" required placeholder="Nhập tài khoản của bạn..." class="auth-input" autocomplete="username" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-[#45210c] mb-1">Mật khẩu</label>
+          <input id="authPassword" type="password" required placeholder="Tối thiểu 4 ký tự..." class="auth-input" autocomplete="current-password" />
+        </div>
+
+        <p id="authError" class="text-xs font-bold text-red-700 bg-red-100/90 border border-red-300 rounded-lg px-3 py-2 hidden"></p>
+
+        <button id="btnAuthSubmit" type="submit" class="wood-btn w-full py-2.5 rounded-xl text-sm font-bold mt-1">
+          Đăng nhập & Vào bàn cờ
+        </button>
+      </form>
+
+      <div class="mt-3 pt-3 border-t border-[#b5833e]/40 flex items-center justify-between text-[11px] text-[#6e4626]">
+        <span>Nhạc nền: <strong class="text-[#45210c]">kiem_hiep_tinh_duyen.mp3</strong></span>
+        <button id="btnAuthMusicToggle" type="button" class="font-bold text-[#854b27] underline">
+          Bật nhạc
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hộp thoại xác nhận Xin Đi Lại (Bắt buộc đối phương đồng ý) -->
+  <div id="undoConfirmModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-[2px] hidden items-center justify-center p-4">
+    <div class="w-full max-w-[350px] rounded-2xl bg-gradient-to-b from-[#fff9ec] to-[#f0dcb9] border-2 border-[#b5833e] shadow-2xl p-5 text-center">
+      <div class="w-12 h-12 mx-auto mb-2.5 rounded-full bg-[#6b3919] text-[#fce29c] border-2 border-[#d9a75a] flex items-center justify-center hanzi-font text-2xl shadow">
+        悔
+      </div>
+      <h3 class="text-lg font-bold text-[#45210c] mb-1">Yêu Cầu Xin Đi Lại</h3>
+      <p id="undoConfirmDesc" class="text-xs sm:text-sm text-[#5e381c] leading-relaxed mb-5">
+        Bên kia muốn xin đi lại nước vừa rồi. Bạn có đồng ý không?
+      </p>
+      <div class="flex gap-3 justify-center">
+        <button id="btnRejectUndo" type="button" class="flex-1 py-2.5 px-3 rounded-xl border border-[#8f6d46] bg-[#e6d1ae] text-[#45210c] font-bold text-xs sm:text-sm hover:bg-[#d9be94] transition">
+          Từ chối
+        </button>
+        <button id="btnAcceptUndo" type="button" class="flex-1 wood-btn py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm">
+          Đồng ý
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hộp thoại Kết Thúc Ván Đấu (Chiếu bí / Hết giờ 90s) -->
+  <div id="gameOverModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-[2px] hidden items-center justify-center p-4">
+    <div class="w-full max-w-[350px] rounded-2xl bg-gradient-to-b from-[#fff9ec] to-[#f0dcb9] border-2 border-[#b5833e] shadow-2xl p-6 text-center">
+      <div id="winnerBadgeIcon" class="w-16 h-16 mx-auto mb-3 rounded-full bg-[#9e1b18] text-[#fff4dc] border-2 border-[#fce29c] flex items-center justify-center hanzi-font text-3xl shadow-lg">
+        勝
+      </div>
+      <h2 id="gameOverTitle" class="text-xl font-bold text-[#45210c] mb-1">Bên Đỏ Chiến Thắng!</h2>
+      <p id="gameOverReason" class="text-xs sm:text-sm text-[#5e381c] leading-relaxed mb-5">
+        Hết giờ — Xử thua!
+      </p>
+      <div class="flex gap-3 justify-center">
+        <button id="btnViewBoard" type="button" class="flex-1 py-2.5 px-3 rounded-xl border border-[#8f6d46] bg-[#e6d1ae] text-[#45210c] font-bold text-xs sm:text-sm hover:bg-[#d9be94] transition">
+          Xem bàn cờ
+        </button>
+        <button id="btnModalNewGame" type="button" class="flex-1 wood-btn py-2.5 px-3 rounded-xl font-bold text-xs sm:text-sm">
+          Chơi ván mới
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * =========================================================================
+     * 0. QUẢN LÝ TÀI KHOẢN (ĐĂNG NHẬP / ĐĂNG KÝ) & NHẠC NỀN MP3
+     * =========================================================================
+     */
+    const ACCOUNTS_KEY = 'tttk_accounts_v1';
+    const SESSION_KEY = 'tttk_active_session_v1';
+    const MUSIC_PREF_KEY = 'tttk_music_enabled_v1';
+
+    const bgmAudio = document.getElementById('bgmAudio');
+    bgmAudio.volume = 0.45;
+
+    let musicEnabled = false;
+    try {
+      musicEnabled = localStorage.getItem(MUSIC_PREF_KEY) === '1';
+    } catch (e) {}
+
+    function updateMusicUI() {
+      const playing = !bgmAudio.paused && musicEnabled;
+      document.getElementById('musicIcon').textContent = playing ? '🎶' : '🎵';
+      document.getElementById('musicLabel').textContent = playing ? 'Nhạc: Bật' : 'Nhạc: Tắt';
+      document.getElementById('btnAuthMusicToggle').textContent = playing ? 'Tắt nhạc' : 'Bật nhạc';
+    }
+
+    function setMusicEnabled(enable) {
+      musicEnabled = enable;
+      try {
+        localStorage.setItem(MUSIC_PREF_KEY, enable ? '1' : '0');
+      } catch (e) {}
+      if (enable) {
+        bgmAudio.play().then(updateMusicUI).catch(updateMusicUI);
+      } else {
+        bgmAudio.pause();
+        updateMusicUI();
+      }
+    }
+
+    function ensureMusicOnFirstInteraction() {
+      if (musicEnabled && bgmAudio.paused) {
+        bgmAudio.play().then(updateMusicUI).catch(() => {});
+      }
+    }
+
+    function loadAccounts() {
+      try {
+        const raw = localStorage.getItem(ACCOUNTS_KEY);
+        return raw ? JSON.parse(raw) : [];
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveAccounts(list) {
+      try {
+        localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(list));
+      } catch (e) {}
+    }
+
+    function getActiveSession() {
+      try {
+        const raw = localStorage.getItem(SESSION_KEY);
+        return raw ? JSON.parse(raw) : null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function setActiveSession(session) {
+      try {
+        if (session) localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+        else localStorage.removeItem(SESSION_KEY);
+      } catch (e) {}
+    }
+
+    let currentUser = getActiveSession();
+    let authMode = 'login'; // 'login' | 'register'
+
+    const authGateEl = document.getElementById('authGate');
+    const currentUserLabelEl = document.getElementById('currentUserLabel');
+    const btnLogoutEl = document.getElementById('btnLogout');
+    const btnNewGameEl = document.getElementById('btnNewGame');
+
+    function isAuthenticated() {
+      return Boolean(currentUser && currentUser.account);
+    }
+
+    function syncAuthGateUI() {
+      if (isAuthenticated()) {
+        authGateEl.classList.add('hidden');
+        currentUserLabelEl.textContent = currentUser.name || currentUser.account;
+        btnLogoutEl.classList.remove('hidden');
+        btnNewGameEl.disabled = false;
+        // Nếu vừa đăng nhập và chưa từng thiết lập hạn giờ mới thì đảm bảo đồng hồ chạy mượt
+        if (!state.gameOver && !state.pendingUndoFrom && (!state.turnDeadline || state.turnDeadline < Date.now() - 86400000)) {
+          state.turnDeadline = Date.now() + TURN_LIMIT_SEC * 1000;
+          saveState();
+        }
+      } else {
+        authGateEl.classList.remove('hidden');
+        currentUserLabelEl.textContent = 'Chưa đăng nhập';
+        btnLogoutEl.classList.add('hidden');
+        btnNewGameEl.disabled = true;
+        statusPillEl.textContent = 'Vui lòng đăng nhập để vào bàn cờ';
+      }
+      renderBoard();
+    }
+
+    function switchAuthMode(mode) {
+      authMode = mode;
+      const tabLogin = document.getElementById('tabLogin');
+      const tabRegister = document.getElementById('tabRegister');
+      const nameField = document.getElementById('displayNameField');
+      const submitBtn = document.getElementById('btnAuthSubmit');
+      const errEl = document.getElementById('authError');
+      errEl.classList.add('hidden');
+
+      if (mode === 'login') {
+        tabLogin.className = 'py-1.5 rounded-lg text-xs font-bold bg-[#6b3919] text-[#ffefd4] shadow transition';
+        tabRegister.className = 'py-1.5 rounded-lg text-xs font-bold text-[#45210c] hover:bg-[#d8bc8c]/60 transition';
+        nameField.classList.add('hidden');
+        submitBtn.textContent = 'Đăng nhập & Vào bàn cờ';
+      } else {
+        tabRegister.className = 'py-1.5 rounded-lg text-xs font-bold bg-[#6b3919] text-[#ffefd4] shadow transition';
+        tabLogin.className = 'py-1.5 rounded-lg text-xs font-bold text-[#45210c] hover:bg-[#d8bc8c]/60 transition';
+        nameField.classList.remove('hidden');
+        submitBtn.textContent = 'Đăng ký & Vào bàn cờ';
+      }
+    }
+
+    document.getElementById('tabLogin').addEventListener('click', () => switchAuthMode('login'));
+    document.getElementById('tabRegister').addEventListener('click', () => switchAuthMode('register'));
+
+    document.getElementById('authForm').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const accountRaw = document.getElementById('authAccount').value.trim();
+      const passwordRaw = document.getElementById('authPassword').value;
+      const nameRaw = document.getElementById('authName').value.trim();
+      const errEl = document.getElementById('authError');
+
+      errEl.classList.add('hidden');
+
+      if (accountRaw.length < 3) {
+        errEl.textContent = 'Tên đăng nhập / Email phải có ít nhất 3 ký tự.';
+        errEl.classList.remove('hidden');
+        return;
+      }
+      if (passwordRaw.length < 4) {
+        errEl.textContent = 'Mật khẩu phải có ít nhất 4 ký tự.';
+        errEl.classList.remove('hidden');
+        return;
+      }
+
+      const normalizedAccount = accountRaw.toLowerCase();
+      const accounts = loadAccounts();
+
+      if (authMode === 'register') {
+        if (accounts.some(acc => acc.account === normalizedAccount)) {
+          errEl.textContent = 'Tài khoản này đã tồn tại. Vui lòng chuyển sang Đăng nhập.';
+          errEl.classList.remove('hidden');
+          return;
+        }
+        const newAcc = {
+          account: normalizedAccount,
+          displayAccount: accountRaw,
+          name: nameRaw || accountRaw,
+          password: passwordRaw,
+          createdAt: Date.now()
+        };
+        accounts.push(newAcc);
+        saveAccounts(accounts);
+        currentUser = { account: newAcc.account, name: newAcc.name };
+        setActiveSession(currentUser);
+      } else {
+        const found = accounts.find(acc => acc.account === normalizedAccount);
+        if (!found) {
+          errEl.textContent = 'Tài khoản chưa tồn tại. Hãy bấm tab Đăng ký để tạo tài khoản mới.';
+          errEl.classList.remove('hidden');
+          return;
+        }
+        if (found.password !== passwordRaw) {
+          errEl.textContent = 'Mật khẩu không chính xác.';
+          errEl.classList.remove('hidden');
+          return;
+        }
+        currentUser = { account: found.account, name: found.name || found.displayAccount || found.account };
+        setActiveSession(currentUser);
+      }
+
+      // Tự động bật nhạc nền khi người dùng vừa tương tác đăng nhập nếu chưa tắt chủ động
+      if (localStorage.getItem(MUSIC_PREF_KEY) === null) {
+        setMusicEnabled(true);
+      } else {
+        ensureMusicOnFirstInteraction();
+      }
+
+      sfx.playSelect();
+      syncAuthGateUI();
+    });
+
+    btnLogoutEl.addEventListener('click', () => {
+      currentUser = null;
+      setActiveSession(null);
+      selected = null;
+      validMoves = [];
+      document.getElementById('authPassword').value = '';
+      syncAuthGateUI();
+    });
+
+    document.getElementById('btnMusicToggle').addEventListener('click', () => {
+      setMusicEnabled(!musicEnabled);
+    });
+
+    document.getElementById('btnAuthMusicToggle').addEventListener('click', () => {
+      setMusicEnabled(!musicEnabled);
+    });
+
+    bgmAudio.addEventListener('play', updateMusicUI);
+    bgmAudio.addEventListener('pause', updateMusicUI);
+
+    /**
+     * =========================================================================
+     * 1. ÂM THANH GÕ QUÂN CỜ GỖ & CẢNH BÁO 10S CUỐI (WEB AUDIO API)
+     * =========================================================================
+     */
+    class WoodChessAudio {
+      constructor() {
+        this.ctx = null;
+      }
+
+      ensureCtx() {
+        if (!this.ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) this.ctx = new AudioCtx();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume().catch(() => {});
+        }
+      }
+
+      playSelect() {
+        this.ensureCtx();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(540, now);
+        osc.frequency.exponentialRampToValueAtTime(290, now + 0.045);
+        gain.gain.setValueAtTime(0.16, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.045);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.05);
+      }
+
+      playMove() {
+        this.ensureCtx();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+
+        const bodyOsc = this.ctx.createOscillator();
+        const bodyGain = this.ctx.createGain();
+        bodyOsc.type = 'sine';
+        bodyOsc.frequency.setValueAtTime(215, now);
+        bodyOsc.frequency.exponentialRampToValueAtTime(66, now + 0.085);
+        bodyGain.gain.setValueAtTime(0.55, now);
+        bodyGain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+
+        const clickOsc = this.ctx.createOscillator();
+        const clickGain = this.ctx.createGain();
+        clickOsc.type = 'triangle';
+        clickOsc.frequency.setValueAtTime(1020, now);
+        clickOsc.frequency.exponentialRampToValueAtTime(340, now + 0.032);
+        clickGain.gain.setValueAtTime(0.32, now);
+        clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.036);
+
+        bodyOsc.connect(bodyGain);
+        bodyGain.connect(this.ctx.destination);
+        clickOsc.connect(clickGain);
+        clickGain.connect(this.ctx.destination);
+
+        bodyOsc.start(now);
+        bodyOsc.stop(now + 0.095);
+        clickOsc.start(now);
+        clickOsc.stop(now + 0.04);
+      }
+
+      playCapture() {
+        this.playMove();
+        setTimeout(() => {
+          if (!this.ctx) return;
+          const now = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(165, now);
+          osc.frequency.exponentialRampToValueAtTime(48, now + 0.11);
+          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.11);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.12);
+        }, 28);
+      }
+
+      playCheck() {
+        this.ensureCtx();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        [440, 587.33].forEach((freq, i) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(freq, now + i * 0.09);
+          gain.gain.setValueAtTime(0.26, now + i * 0.09);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.09 + 0.24);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + i * 0.09);
+          osc.stop(now + i * 0.09 + 0.25);
+        });
+      }
+
+      playTick() {
+        this.ensureCtx();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(920, now);
+        gain.gain.setValueAtTime(0.14, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.055);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.06);
+      }
+
+      playTimeout() {
+        this.ensureCtx();
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(240, now);
+        osc.frequency.linearRampToValueAtTime(110, now + 0.35);
+        gain.gain.setValueAtTime(0.28, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.4);
+      }
+    }
+
+    const sfx = new WoodChessAudio();
+
+    /**
+     * =========================================================================
+     * 2. VẼ DẤU HOA THỊ CHUẨN TRÊN MẶT BÀN CỜ
+     * =========================================================================
+     */
+    function drawStarMarks() {
+      const group = document.getElementById('starMarksGroup');
+      const coords = [
+        { c: 1, r: 2 }, { c: 7, r: 2 },
+        { c: 1, r: 7 }, { c: 7, r: 7 },
+        { c: 0, r: 3 }, { c: 2, r: 3 }, { c: 4, r: 3 }, { c: 6, r: 3 }, { c: 8, r: 3 },
+        { c: 0, r: 6 }, { c: 2, r: 6 }, { c: 4, r: 6 }, { c: 6, r: 6 }, { c: 8, r: 6 }
+      ];
+      const d = 6, arm = 14;
+      let pathData = '';
+      coords.forEach(({ c, r }) => {
+        const x = 50 + c * 100;
+        const y = 50 + r * 100;
+        if (c > 0) {
+          pathData += `M ${x - d - arm} ${y - d} H ${x - d} V ${y - d - arm} `;
+          pathData += `M ${x - d - arm} ${y + d} H ${x - d} V ${y + d + arm} `;
+        }
+        if (c < 8) {
+          pathData += `M ${x + d + arm} ${y - d} H ${x + d} V ${y - d - arm} `;
+          pathData += `M ${x + d + arm} ${y + d} H ${x + d} V ${y + d + arm} `;
+        }
+      });
+      const el = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      el.setAttribute('d', pathData);
+      group.appendChild(el);
+    }
+
+    /**
+     * =========================================================================
+     * 3. LUẬT CỜ TƯỚNG CHUẨN (TƯỚNG ĐỐI MẶT, CHIẾU TƯỚNG, CHIẾU BÍ / HẾT CỜ)
+     * =========================================================================
+     */
+    const PIECE_CHARS = {
+      'rK': '帥', 'rA': '仕', 'rE': '相', 'rH': '馬', 'rR': '車', 'rC': '砲', 'rP': '兵',
+      'bK': '將', 'bA': '士', 'bE': '象', 'bH': '馬', 'bR': '車', 'bC': '砲', 'bP': '卒'
+    };
+
+    function createInitialBoard() {
+      const b = Array.from({ length: 10 }, () => Array(9).fill(null));
+      b[0] = ['bR', 'bH', 'bE', 'bA', 'bK', 'bA', 'bE', 'bH', 'bR'];
+      b[2][1] = 'bC';
+      b[2][7] = 'bC';
+      [0, 2, 4, 6, 8].forEach(c => b[3][c] = 'bP');
+
+      b[9] = ['rR', 'rH', 'rE', 'rA', 'rK', 'rA', 'rE', 'rH', 'rR'];
+      b[7][1] = 'rC';
+      b[7][7] = 'rC';
+      [0, 2, 4, 6, 8].forEach(c => b[6][c] = 'rP');
+      return b;
+    }
+
+    function cloneBoard(b) {
+      return b.map(row => [...row]);
+    }
+
+    function sideOf(p) { return p ? p[0] : null; }
+    function typeOf(p) { return p ? p[1] : null; }
+    function inBounds(r, c) { return r >= 0 && r < 10 && c >= 0 && c < 9; }
+
+    function getPseudoMoves(b, r, c) {
+      const p = b[r][c];
+      if (!p) return [];
+      const side = sideOf(p);
+      const type = typeOf(p);
+      const moves = [];
+
+      const pushIfOk = (nr, nc) => {
+        if (!inBounds(nr, nc)) return false;
+        const target = b[nr][nc];
+        if (!target || sideOf(target) !== side) moves.push({ r: nr, c: nc });
+        return !target;
+      };
+
+      switch (type) {
+        case 'K': {
+          for (const [dr, dc] of [[1,0],[-1,0],[0,1],[0,-1]]) {
+            const nr = r + dr, nc = c + dc;
+            const okC = nc >= 3 && nc <= 5;
+            const okR = side === 'r' ? (nr >= 7 && nr <= 9) : (nr >= 0 && nr <= 2);
+            if (okC && okR) pushIfOk(nr, nc);
+          }
+          break;
+        }
+        case 'A': {
+          for (const [dr, dc] of [[1,1],[1,-1],[-1,1],[-1,-1]]) {
+            const nr = r + dr, nc = c + dc;
+            const okC = nc >= 3 && nc <= 5;
+            const okR = side === 'r' ? (nr >= 7 && nr <= 9) : (nr >= 0 && nr <= 2);
+            if (okC && okR) pushIfOk(nr, nc);
+          }
+          break;
+        }
+        case 'E': {
+          const steps = [[-2,-2,-1,-1],[-2,2,-1,1],[2,-2,1,-1],[2,2,1,1]];
+          for (const [dr, dc, br, bc] of steps) {
+            const nr = r + dr, nc = c + dc;
+            if (!inBounds(nr, nc)) continue;
+            if (side === 'r' && nr < 5) continue;
+            if (side === 'b' && nr > 4) continue;
+            if (!b[r + br][c + bc]) pushIfOk(nr, nc);
+          }
+          break;
+        }
+        case 'H': {
+          const jumps = [
+            [-2,-1,-1,0],[-2,1,-1,0],[2,-1,1,0],[2,1,1,0],
+            [-1,-2,0,-1],[1,-2,0,-1],[-1,2,0,1],[1,2,0,1]
+          ];
+          for (const [dr, dc, lr, lc] of jumps) {
+            const nr = r + dr, nc = c + dc;
+            if (inBounds(nr, nc) && !b[r + lr][c + lc]) pushIfOk(nr, nc);
+          }
+          break;
+        }
+        case 'R': {
+          for (const [dr, dc] of [[1,0],[-1,0],[0,1],[0,-1]]) {
+            let nr = r + dr, nc = c + dc;
+            while (inBounds(nr, nc)) {
+              if (!pushIfOk(nr, nc)) break;
+              nr += dr; nc += dc;
+            }
+          }
+          break;
+        }
+        case 'C': {
+          for (const [dr, dc] of [[1,0],[-1,0],[0,1],[0,-1]]) {
+            let nr = r + dr, nc = c + dc, jumped = false;
+            while (inBounds(nr, nc)) {
+              const target = b[nr][nc];
+              if (!jumped) {
+                if (!target) moves.push({ r: nr, c: nc });
+                else jumped = true;
+              } else if (target) {
+                if (sideOf(target) !== side) moves.push({ r: nr, c: nc });
+                break;
+              }
+              nr += dr; nc += dc;
+            }
+          }
+          break;
+        }
+        case 'P': {
+          const fwd = side === 'r' ? -1 : 1;
+          pushIfOk(r + fwd, c);
+          const crossed = side === 'r' ? r <= 4 : r >= 5;
+          if (crossed) {
+            pushIfOk(r, c - 1);
+            pushIfOk(r, c + 1);
+          }
+          break;
+        }
+      }
+      return moves;
+    }
+
+    function areKingsFacing(b) {
+      let rK = null, bK = null;
+      for (let r = 0; r < 10; r++) {
+        for (let c = 3; c <= 5; c++) {
+          if (b[r][c] === 'rK') rK = { r, c };
+          if (b[r][c] === 'bK') bK = { r, c };
+        }
+      }
+      if (!rK || !bK || rK.c !== bK.c) return false;
+      for (let r = bK.r + 1; r < rK.r; r++) {
+        if (b[r][rK.c]) return false;
+      }
+      return true;
+    }
+
+    function isSideInCheck(b, side) {
+      if (areKingsFacing(b)) return true;
+      let kPos = null;
+      for (let r = 0; r < 10; r++) {
+        for (let c = 3; c <= 5; c++) {
+          if (b[r][c] === `${side}K`) { kPos = { r, c }; break; }
+        }
+        if (kPos) break;
+      }
+      if (!kPos) return true;
+      const opp = side === 'r' ? 'b' : 'r';
+      for (let r = 0; r < 10; r++) {
+        for (let c = 0; c < 9; c++) {
+          if (sideOf(b[r][c]) === opp) {
+            if (getPseudoMoves(b, r, c).some(m => m.r === kPos.r && m.c === kPos.c)) return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    function getLegalMoves(b, r, c) {
+      const p = b[r][c];
+      if (!p) return [];
+      const side = sideOf(p);
+      return getPseudoMoves(b, r, c).filter(m => {
+        const next = cloneBoard(b);
+        next[m.r][m.c] = p;
+        next[r][c] = null;
+        return !isSideInCheck(next, side);
+      });
+    }
+
+    function hasAnyLegalMoves(b, side) {
+      for (let r = 0; r < 10; r++) {
+        for (let c = 0; c < 9; c++) {
+          if (sideOf(b[r][c]) === side && getLegalMoves(b, r, c).length > 0) return true;
+        }
+      }
+      return false;
+    }
+
+    /**
+     * =========================================================================
+     * 4. QUẢN LÝ TRẠNG THÁI, ĐỒNG HỒ 90S, XIN ĐI LẠI & LƯU TRỮ LOCALSTORAGE
+     * =========================================================================
+     */
+    const TURN_LIMIT_SEC = 90;
+    const STORAGE_KEY = 'tttk_cophong_match_state_v3';
+
+    let state = {
+      board: createInitialBoard(),
+      turn: 'r',
+      turnDeadline: Date.now() + TURN_LIMIT_SEC * 1000,
+      lastMove: null,
+      history: [],
+      inCheckSide: null,
+      gameOver: false,
+      winnerSide: null,
+      endReason: '',
+      pendingUndoFrom: null
+    };
+
+    let selected = null;
+    let validMoves = [];
+    let lastBeepSec = null;
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {}
+    }
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return false;
+        const parsed = JSON.parse(raw);
+        if (parsed && Array.isArray(parsed.board) && parsed.board.length === 10) {
+          state = parsed;
+          return true;
+        }
+      } catch (e) {}
+      return false;
+    }
+
+    function formatMMSS(sec) {
+      const s = Math.max(0, Math.ceil(sec));
+      const m = Math.floor(s / 60);
+      const r = s % 60;
+      return `${String(m).padStart(2, '0')}:${String(r).padStart(2, '0')}`;
+    }
+
+    const interactiveLayer = document.getElementById('boardInteractiveLayer');
+    const boardSurface = document.getElementById('boardSurface');
+    const timerRedEl = document.getElementById('timerRed');
+    const timerBlackEl = document.getElementById('timerBlack');
+    const plaqueRedEl = document.getElementById('playerRedPlaque');
+    const plaqueBlackEl = document.getElementById('playerBlackPlaque');
+    const statusRedEl = document.getElementById('redStatus');
+    const statusBlackEl = document.getElementById('blackStatus');
+    const checkTagRedEl = document.getElementById('redCheckTag');
+    const checkTagBlackEl = document.getElementById('blackCheckTag');
+    const statusPillEl = document.getElementById('statusPill');
+    const btnUndoEl = document.getElementById('btnUndo');
+    const undoModalEl = document.getElementById('undoConfirmModal');
+    const undoDescEl = document.getElementById('undoConfirmDesc');
+    const gameOverModalEl = document.getElementById('gameOverModal');
+
+    function showGameOverModal() {
+      if (!isAuthenticated()) return;
+      const icon = document.getElementById('winnerBadgeIcon');
+      const title = document.getElementById('gameOverTitle');
+      const reason = document.getElementById('gameOverReason');
+
+      if (state.winnerSide === 'r') {
+        icon.className = 'w-16 h-16 mx-auto mb-3 rounded-full bg-[#9e1b18] text-[#fff4dc] border-2 border-[#fce29c] flex items-center justify-center hanzi-font text-3xl shadow-lg';
+        title.textContent = 'Bên Đỏ Chiến Thắng!';
+      } else {
+        icon.className = 'w-16 h-16 mx-auto mb-3 rounded-full bg-[#241c17] text-[#fff4dc] border-2 border-[#fce29c] flex items-center justify-center hanzi-font text-3xl shadow-lg';
+        title.textContent = 'Bên Đen Chiến Thắng!';
+      }
+      reason.textContent = state.endReason;
+      gameOverModalEl.classList.remove('hidden');
+      gameOverModalEl.classList.add('flex');
+    }
+
+    function updateClocksAndPlaques() {
+      if (!isAuthenticated()) {
+        timerRedEl.classList.remove('timer-danger');
+        timerBlackEl.classList.remove('timer-danger');
+        statusRedEl.textContent = 'Chờ đăng nhập';
+        statusBlackEl.textContent = 'Chờ đăng nhập';
+        return;
+      }
+
+      if (state.gameOver) {
+        timerRedEl.classList.remove('timer-danger');
+        timerBlackEl.classList.remove('timer-danger');
+        plaqueRedEl.classList.remove('active-turn');
+        plaqueBlackEl.classList.remove('active-turn');
+        statusRedEl.textContent = state.winnerSide === 'r' ? 'Thắng cuộc' : 'Thua cuộc';
+        statusBlackEl.textContent = state.winnerSide === 'b' ? 'Thắng cuộc' : 'Thua cuộc';
+        return;
+      }
+
+      if (state.pendingUndoFrom) return;
+
+      const remaining = (state.turnDeadline - Date.now()) / 1000;
+      if (remaining <= 0) {
+        const loserSide = state.turn;
+        const winnerSide = loserSide === 'r' ? 'b' : 'r';
+        const loserName = loserSide === 'r' ? 'Bên Đỏ' : 'Bên Đen';
+
+        if (loserSide === 'r') {
+          timerRedEl.textContent = '00:00';
+          timerBlackEl.textContent = formatMMSS(TURN_LIMIT_SEC);
+        } else {
+          timerBlackEl.textContent = '00:00';
+          timerRedEl.textContent = formatMMSS(TURN_LIMIT_SEC);
+        }
+
+        state.gameOver = true;
+        state.winnerSide = winnerSide;
+        state.endReason = `${loserName} hết thời gian 90 giây chưa đi quân nên bị xử thua.`;
+        saveState();
+        sfx.playTimeout();
+        statusPillEl.textContent = `${loserName} hết giờ — Xử thua!`;
+        showGameOverModal();
+        updateClocksAndPlaques();
+        return;
+      }
+
+      const ceilSec = Math.ceil(remaining);
+      if (ceilSec <= 10 && ceilSec !== lastBeepSec) {
+        lastBeepSec = ceilSec;
+        sfx.playTick();
+      }
+
+      checkTagRedEl.classList.toggle('hidden', state.inCheckSide !== 'r');
+      checkTagBlackEl.classList.toggle('hidden', state.inCheckSide !== 'b');
+
+      if (state.turn === 'r') {
+        timerRedEl.textContent = formatMMSS(remaining);
+        timerBlackEl.textContent = formatMMSS(TURN_LIMIT_SEC);
+        timerRedEl.classList.toggle('timer-danger', remaining <= 10);
+        timerBlackEl.classList.remove('timer-danger');
+        plaqueRedEl.classList.add('active-turn');
+        plaqueBlackEl.classList.remove('active-turn');
+        statusRedEl.textContent = remaining <= 10 ? 'Sắp hết giờ!' : 'Đang suy nghĩ...';
+        statusBlackEl.textContent = 'Đang chờ lượt';
+      } else {
+        timerBlackEl.textContent = formatMMSS(remaining);
+        timerRedEl.textContent = formatMMSS(TURN_LIMIT_SEC);
+        timerBlackEl.classList.toggle('timer-danger', remaining <= 10);
+        timerRedEl.classList.remove('timer-danger');
+        plaqueBlackEl.classList.add('active-turn');
+        plaqueRedEl.classList.remove('active-turn');
+        statusBlackEl.textContent = remaining <= 10 ? 'Sắp hết giờ!' : 'Đang suy nghĩ...';
+        statusRedEl.textContent = 'Đang chờ lượt';
+      }
+    }
+
+    function syncUndoModalUI() {
+      if (isAuthenticated() && state.pendingUndoFrom && !state.gameOver) {
+        const requester = state.pendingUndoFrom === 'r' ? 'Bên Đỏ' : 'Bên Đen';
+        const approver = state.pendingUndoFrom === 'r' ? 'Bên Đen' : 'Bên Đỏ';
+        undoDescEl.textContent = `${requester} muốn xin đi lại nước vừa rồi. Chờ ${approver} xác nhận:`;
+        undoModalEl.classList.remove('hidden');
+        undoModalEl.classList.add('flex');
+      } else {
+        undoModalEl.classList.add('hidden');
+        undoModalEl.classList.remove('flex');
+      }
+    }
+
+    function renderBoard() {
+      interactiveLayer.innerHTML = '';
+      const boardWidth = boardSurface.clientWidth || 360;
+      const pieceSize = Math.round(boardWidth * 0.098);
+      const fontSize = Math.round(pieceSize * 0.56);
+
+      if (state.lastMove) {
+        const origin = document.createElement('div');
+        origin.className = 'last-move-origin';
+        origin.style.left = `${((50 + state.lastMove.from.c * 100) / 900) * 100}%`;
+        origin.style.top = `${((50 + state.lastMove.from.r * 100) / 1000) * 100}%`;
+        interactiveLayer.appendChild(origin);
+      }
+
+      for (let r = 0; r < 10; r++) {
+        for (let c = 0; c < 9; c++) {
+          const piece = state.board[r][c];
+          if (!piece) continue;
+
+          const side = sideOf(piece);
+          const isSelected = selected && selected.r === r && selected.c === c;
+          const isKingChecked = typeOf(piece) === 'K' && state.inCheckSide === side;
+          const isLastMoved = state.lastMove && state.lastMove.to.r === r && state.lastMove.to.c === c;
+
+          const el = document.createElement('div');
+          el.className = `xiangqi-piece ${side === 'r' ? 'piece-red' : 'piece-black'}${isSelected ? ' selected' : ''}${isKingChecked ? ' in-check' : ''}${isLastMoved ? ' last-moved' : ''}`;
+          el.style.left = `${((50 + c * 100) / 900) * 100}%`;
+          el.style.top = `${((50 + r * 100) / 1000) * 100}%`;
+          el.style.width = `${pieceSize}px`;
+          el.style.height = `${pieceSize}px`;
+
+          el.innerHTML = `
+            <div class="piece-body">
+              <div class="piece-ring-outer">
+                <div class="piece-ring-inner">
+                  <span class="hanzi-font piece-char" style="font-size: ${fontSize}px;">${PIECE_CHARS[piece]}</span>
+                </div>
+              </div>
+            </div>
+          `;
+
+          el.addEventListener('click', (e) => {
+            e.stopPropagation();
+            handleIntersectionClick(r, c);
+          });
+
+          interactiveLayer.appendChild(el);
+        }
+      }
+
+      if (isAuthenticated()) {
+        validMoves.forEach(m => {
+          const leftPct = `${((50 + m.c * 100) / 900) * 100}%`;
+          const topPct = `${((50 + m.r * 100) / 1000) * 100}%`;
+          if (state.board[m.r][m.c]) {
+            const ring = document.createElement('div');
+            ring.className = 'capture-ring';
+            ring.style.left = leftPct;
+            ring.style.top = topPct;
+            ring.style.width = `${pieceSize + 8}px`;
+            ring.style.height = `${pieceSize + 8}px`;
+            interactiveLayer.appendChild(ring);
+          } else {
+            const dot = document.createElement('div');
+            dot.className = 'move-dot';
+            dot.style.left = leftPct;
+            dot.style.top = topPct;
+            interactiveLayer.appendChild(dot);
+          }
+        });
+      }
+
+      if (!isAuthenticated()) {
+        statusPillEl.textContent = 'Vui lòng đăng nhập để vào bàn cờ';
+        btnUndoEl.disabled = true;
+      } else if (!state.gameOver) {
+        const turnName = state.turn === 'r' ? 'Bên Đỏ' : 'Bên Đen';
+        statusPillEl.textContent = state.inCheckSide
+          ? `${turnName} đang bị chiếu tướng!`
+          : `Lượt: ${turnName} (90s / nước)`;
+        btnUndoEl.disabled = state.history.length === 0 || Boolean(state.pendingUndoFrom);
+      } else {
+        statusPillEl.textContent = state.endReason;
+        btnUndoEl.disabled = true;
+      }
+
+      syncUndoModalUI();
+      updateClocksAndPlaques();
+    }
+
+    function executeMove(r1, c1, r2, c2) {
+      if (!isAuthenticated() || state.gameOver || state.pendingUndoFrom) return;
+      const movingPiece = state.board[r1][c1];
+      const captured = Boolean(state.board[r2][c2]);
+
+      state.history.push({
+        board: cloneBoard(state.board),
+        turn: state.turn,
+        lastMove: state.lastMove,
+        inCheckSide: state.inCheckSide
+      });
+
+      state.board[r2][c2] = movingPiece;
+      state.board[r1][c1] = null;
+      state.lastMove = { from: { r: r1, c: c1 }, to: { r: r2, c: c2 } };
+      selected = null;
+      validMoves = [];
+      lastBeepSec = null;
+
+      const nextTurn = state.turn === 'r' ? 'b' : 'r';
+      state.turn = nextTurn;
+      state.turnDeadline = Date.now() + TURN_LIMIT_SEC * 1000;
+
+      const nextChecked = isSideInCheck(state.board, nextTurn);
+      state.inCheckSide = nextChecked ? nextTurn : null;
+
+      if (nextChecked) sfx.playCheck();
+      else if (captured) sfx.playCapture();
+      else sfx.playMove();
+
+      if (!hasAnyLegalMoves(state.board, nextTurn)) {
+        state.gameOver = true;
+        state.winnerSide = nextTurn === 'r' ? 'b' : 'r';
+        state.endReason = nextChecked
+          ? 'Tuyệt sát! Chiếu bí hoàn toàn đối phương.'
+          : 'Khốn bí! Đối phương không còn nước đi hợp lệ.';
+      }
+
+      saveState();
+      renderBoard();
+
+      if (state.gameOver) {
+        setTimeout(showGameOverModal, 320);
+      }
+    }
+
+    function handleIntersectionClick(r, c) {
+      if (!isAuthenticated() || state.gameOver || state.pendingUndoFrom) return;
+      const clicked = state.board[r][c];
+
+      if (clicked && sideOf(clicked) === state.turn) {
+        selected = { r, c };
+        validMoves = getLegalMoves(state.board, r, c);
+        sfx.playSelect();
+        renderBoard();
+        return;
+      }
+
+      if (selected) {
+        if (validMoves.some(m => m.r === r && m.c === c)) {
+          executeMove(selected.r, selected.c, r, c);
+        } else {
+          selected = null;
+          validMoves = [];
+          renderBoard();
+        }
+      }
+    }
+
+    boardSurface.addEventListener('click', (e) => {
+      if (!isAuthenticated()) return;
+      const rect = boardSurface.getBoundingClientRect();
+      const relX = (e.clientX - rect.left) / rect.width;
+      const relY = (e.clientY - rect.top) / rect.height;
+      const c = Math.round((relX * 900 - 50) / 100);
+      const r = Math.round((relY * 1000 - 50) / 100);
+      if (inBounds(r, c)) {
+        handleIntersectionClick(r, c);
+      }
+    });
+
+    function resetGame() {
+      if (!isAuthenticated()) return;
+      state = {
+        board: createInitialBoard(),
+        turn: 'r',
+        turnDeadline: Date.now() + TURN_LIMIT_SEC * 1000,
+        lastMove: null,
+        history: [],
+        inCheckSide: null,
+        gameOver: false,
+        winnerSide: null,
+        endReason: '',
+        pendingUndoFrom: null
+      };
+      selected = null;
+      validMoves = [];
+      lastBeepSec = null;
+      gameOverModalEl.classList.add('hidden');
+      gameOverModalEl.classList.remove('flex');
+      undoModalEl.classList.add('hidden');
+      undoModalEl.classList.remove('flex');
+      saveState();
+      sfx.playMove();
+      renderBoard();
+    }
+
+    btnUndoEl.addEventListener('click', () => {
+      if (!isAuthenticated() || state.gameOver || state.pendingUndoFrom || state.history.length === 0) return;
+      state.pendingUndoFrom = state.turn === 'r' ? 'b' : 'r';
+      saveState();
+      sfx.playSelect();
+      renderBoard();
+    });
+
+    document.getElementById('btnAcceptUndo').addEventListener('click', () => {
+      const prev = state.history.pop();
+      state.pendingUndoFrom = null;
+      if (prev) {
+        state.board = prev.board;
+        state.turn = prev.turn;
+        state.lastMove = prev.lastMove;
+        state.inCheckSide = prev.inCheckSide;
+        state.turnDeadline = Date.now() + TURN_LIMIT_SEC * 1000;
+        selected = null;
+        validMoves = [];
+        lastBeepSec = null;
+        sfx.playMove();
+      }
+      saveState();
+      renderBoard();
+      statusPillEl.textContent = 'Đối phương đã đồng ý cho đi lại!';
+    });
+
+    document.getElementById('btnRejectUndo').addEventListener('click', () => {
+      state.pendingUndoFrom = null;
+      saveState();
+      sfx.playSelect();
+      renderBoard();
+      statusPillEl.textContent = 'Đối phương đã từ chối xin đi lại';
+    });
+
+    btnNewGameEl.addEventListener('click', resetGame);
+    document.getElementById('btnModalNewGame').addEventListener('click', resetGame);
+    document.getElementById('btnViewBoard').addEventListener('click', () => {
+      gameOverModalEl.classList.add('hidden');
+      gameOverModalEl.classList.remove('flex');
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        loadState();
+        renderBoard();
+        if (musicEnabled && bgmAudio.paused) {
+          bgmAudio.play().then(updateMusicUI).catch(() => {});
+        }
+      }
+    });
+
+    window.addEventListener('resize', renderBoard);
+
+    window.addEventListener('DOMContentLoaded', () => {
+      drawStarMarks();
+      const restored = loadState();
+      syncAuthGateUI();
+      updateMusicUI();
+      if (isAuthenticated() && restored && state.gameOver && state.winnerSide) {
+        showGameOverModal();
+      }
+      setInterval(updateClocksAndPlaques, 250);
+    });
+  </script>
+</body>
+</html>
