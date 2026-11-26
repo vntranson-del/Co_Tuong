@@ -592,13 +592,14 @@
   </svg>
 
   <!-- Thanh tài khoản & nhạc nền trên cùng -->
-  <div class="relative z-10 w-full max-w-[480px] px-3 pt-2 flex items-center justify-between gap-2">
+  <div class="relative z-10 w-full max-w-[480px] px-3 pt-2 flex flex-wrap items-center justify-between gap-1.5">
     <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-[#fff8ea]/85 border border-[#b5833e]/80 text-xs font-bold text-[#47240d] truncate">
       <span>Kỳ thủ:</span>
       <span id="currentUserLabel" class="text-[#9e1b18] truncate">Chưa đăng nhập</span>
     </div>
 
-    <div class="flex items-center gap-1.5 shrink-0">
+    <div class="flex flex-wrap justify-end items-center gap-1.5 ml-auto">
+      <button id="btnOnline" type="button" class="wood-btn px-2.5 py-1 rounded-xl text-[11px] font-bold hidden">Chơi online</button>
       <button id="btnMusicToggle" type="button" class="wood-btn px-2.5 py-1 rounded-xl text-[11px] font-bold flex items-center gap-1">
         <span id="musicIcon">🎵</span>
         <span id="musicLabel">Nhạc: Tắt</span>
@@ -606,6 +607,7 @@
       <button id="btnAdmin" type="button" class="wood-btn px-2.5 py-1 rounded-xl text-[11px] font-bold hidden">
         Quản trị<span id="adminBadge" class="hidden ml-1 px-1.5 rounded-full bg-red-700 text-amber-100"></span>
       </button>
+      <button id="btnPassword" type="button" class="px-2.5 py-1 rounded-xl border border-[#8f6d46] bg-[#e6d1ae]/90 text-[#45210c] text-[11px] font-bold hover:bg-[#d9be94] transition hidden">Đổi mật khẩu</button>
       <button id="btnLogout" type="button" class="px-2.5 py-1 rounded-xl border border-[#8f6d46] bg-[#e6d1ae]/90 text-[#45210c] text-[11px] font-bold hover:bg-[#d9be94] transition hidden">
         Đăng xuất
       </button>
@@ -623,7 +625,7 @@
         </div>
         <div class="flex flex-col leading-tight">
           <div class="flex items-center gap-1.5">
-            <span class="text-sm font-bold text-[#331908]">Bên Đen</span>
+            <span id="blackName" class="text-sm font-bold text-[#331908]">Bên Đen</span>
             <span id="blackCheckTag" class="hidden px-1.5 py-0.5 rounded bg-red-700 text-amber-100 text-[10px] font-extrabold tracking-wider animate-pulse">CHIẾU!</span>
           </div>
           <span id="blackStatus" class="text-[11px] font-medium text-[#6e4626]">Đang chờ lượt</span>
@@ -739,7 +741,7 @@
         </div>
         <div class="flex flex-col leading-tight">
           <div class="flex items-center gap-1.5">
-            <span class="text-sm font-bold text-[#7d110e]">Bên Đỏ (Đi trước)</span>
+            <span id="redName" class="text-sm font-bold text-[#7d110e]">Bên Đỏ (Đi trước)</span>
             <span id="redCheckTag" class="hidden px-1.5 py-0.5 rounded bg-red-700 text-amber-100 text-[10px] font-extrabold tracking-wider animate-pulse">CHIẾU!</span>
           </div>
           <span id="redStatus" class="text-[11px] font-medium text-[#6e4626]">Đang suy nghĩ...</span>
@@ -763,7 +765,7 @@
 
       <button id="btnNewGame" type="button" class="wood-btn px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shrink-0" disabled>
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-        <span>Ván mới</span>
+        <span id="newGameLabel">Ván mới</span>
       </button>
     </div>
   </footer>
@@ -847,6 +849,46 @@
       <input id="adminSearch" type="search" placeholder="Tìm theo tên hoặc email..." class="auth-input mb-2" />
       <p id="adminMessage" class="hidden text-xs font-bold text-red-700 bg-red-100/90 border border-red-300 rounded-lg px-3 py-2 mb-2"></p>
       <div id="adminList" class="flex-1 min-h-0 overflow-y-auto flex flex-col gap-2"></div>
+    </div>
+  </div>
+
+  <!-- Đổi mật khẩu -->
+  <div id="passwordModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-[2px] hidden items-center justify-center p-4">
+    <form id="passwordForm" class="w-full max-w-[370px] max-h-[90dvh] overflow-y-auto rounded-2xl bg-gradient-to-b from-[#fff9ec] to-[#f0dcb9] border-2 border-[#b5833e] shadow-2xl p-5 flex flex-col gap-3">
+      <h3 class="text-lg font-bold text-[#45210c]">Đổi mật khẩu</h3>
+      <input id="pwCurrent" type="password" required placeholder="Mật khẩu hiện tại" class="auth-input" autocomplete="current-password" />
+      <input id="pwNew" type="password" required placeholder="Mật khẩu mới (tối thiểu 6 ký tự)" class="auth-input" autocomplete="new-password" />
+      <input id="pwConfirm" type="password" required placeholder="Nhập lại mật khẩu mới" class="auth-input" autocomplete="new-password" />
+      <p id="pwMessage" class="hidden text-xs font-bold rounded-lg px-3 py-2 border"></p>
+      <div class="flex gap-3">
+        <button id="btnPwClose" type="button" class="flex-1 px-3 py-2 rounded-lg border border-[#8f6d46] bg-[#e6d1ae] text-[#45210c] text-xs font-bold">Đóng</button>
+        <button id="btnPwSave" type="submit" class="flex-1 wood-btn py-2 rounded-lg text-xs font-bold">Lưu mật khẩu</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Sảnh chơi online -->
+  <div id="lobbyModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-[2px] hidden items-center justify-center p-4">
+    <div class="w-full max-w-[370px] max-h-[90dvh] overflow-y-auto rounded-2xl bg-gradient-to-b from-[#fff9ec] to-[#f0dcb9] border-2 border-[#b5833e] shadow-2xl p-5">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-lg font-bold text-[#45210c]">Chơi online</h3>
+        <button id="btnLobbyClose" type="button" class="px-3 py-2 rounded-lg border border-[#8f6d46] bg-[#e6d1ae] text-[#45210c] text-xs font-bold">Đóng</button>
+      </div>
+      <p id="lobbyMessage" class="hidden text-xs font-bold text-red-700 bg-red-100/90 border border-red-300 rounded-lg px-3 py-2 mb-3"></p>
+      <div id="lobbyWaiting" class="hidden text-center">
+        <p class="text-sm font-bold text-[#45210c] mb-1">Đang chờ đối thủ...</p>
+        <p class="text-xs text-[#5e381c] mb-4">Bảo bạn chơi đăng nhập, bấm "Chơi online" và chọn phòng của bạn. Giữ trang này mở.</p>
+        <button id="btnCancelRoom" type="button" class="px-3 py-2 rounded-lg border border-[#8f6d46] bg-[#e6d1ae] text-[#45210c] text-xs font-bold">Hủy phòng</button>
+      </div>
+      <div id="lobbyMain">
+        <p class="text-xs font-bold text-[#45210c] mb-1.5">Tạo phòng mới</p>
+        <div class="flex gap-2 mb-4">
+          <button id="btnCreateRed" type="button" class="flex-1 wood-btn py-2.5 rounded-lg text-xs font-bold">Cầm quân Đỏ (đi trước)</button>
+          <button id="btnCreateBlack" type="button" class="flex-1 wood-btn py-2.5 rounded-lg text-xs font-bold">Cầm quân Đen</button>
+        </div>
+        <p class="text-xs font-bold text-[#45210c] mb-1.5">Phòng đang chờ</p>
+        <div id="roomList" class="flex flex-col gap-2"></div>
+      </div>
     </div>
   </div>
 
@@ -1005,6 +1047,13 @@
       currentUserLabelEl.textContent = currentUser ? currentUser.display_name : 'Chưa đăng nhập';
       btnLogoutEl.classList.toggle('hidden', !currentUser);
       btnAdminEl.classList.toggle('hidden', !isAdmin());
+      document.getElementById('btnOnline').classList.toggle('hidden', !isAuthenticated());
+      document.getElementById('btnPassword').classList.toggle('hidden', !isAuthenticated());
+      if (!isAuthenticated()) {
+        stopOnline();
+        closeLobby();
+        closePassword();
+      }
       if (!isAdmin()) closeAdmin();
 
       if (isAuthenticated()) {
@@ -1054,7 +1103,10 @@
       currentUser = profile;
       if (changed) {
         syncAuthGateUI();
-        if (!wasAllowed && isAuthenticated() && state.gameOver && state.winnerSide) showGameOverModal();
+        if (!wasAllowed && isAuthenticated()) {
+          if (state.gameOver && state.winnerSide) showGameOverModal();
+          resumeOnline();
+        }
       }
       if (isAdmin()) loadPlayers();
     }
@@ -1115,6 +1167,7 @@
     });
 
     async function logout() {
+      closeLobby();
       if (sb) await sb.auth.signOut({ scope: 'local' });
       currentUser = null;
       players = [];
@@ -1265,6 +1318,328 @@
 
     bgmAudio.addEventListener('play', updateMusicUI);
     bgmAudio.addEventListener('pause', updateMusicUI);
+
+    /* ---------- Đổi mật khẩu ---------- */
+    const passwordModalEl = document.getElementById('passwordModal');
+
+    function showModal(el, show) {
+      el.classList.toggle('hidden', !show);
+      el.classList.toggle('flex', show);
+    }
+
+    function showPwMessage(msg, ok) {
+      const el = document.getElementById('pwMessage');
+      el.textContent = msg || '';
+      el.className = 'text-xs font-bold rounded-lg px-3 py-2 border ' +
+        (ok ? 'text-green-800 bg-green-100 border-green-300' : 'text-red-700 bg-red-100/90 border-red-300') +
+        (msg ? '' : ' hidden');
+    }
+
+    function closePassword() {
+      showModal(passwordModalEl, false);
+      document.getElementById('passwordForm').reset();
+      showPwMessage('');
+    }
+
+    document.getElementById('btnPassword').addEventListener('click', () => showModal(passwordModalEl, true));
+    document.getElementById('btnPwClose').addEventListener('click', closePassword);
+    document.getElementById('passwordForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (!currentUser) return;
+      const current = document.getElementById('pwCurrent').value;
+      const next = document.getElementById('pwNew').value;
+      const again = document.getElementById('pwConfirm').value;
+      if (next.length < 6) return showPwMessage('Mật khẩu mới phải có ít nhất 6 ký tự.');
+      if (next !== again) return showPwMessage('Hai lần nhập mật khẩu mới không khớp.');
+      if (next === current) return showPwMessage('Mật khẩu mới phải khác mật khẩu cũ.');
+      const btn = document.getElementById('btnPwSave');
+      btn.disabled = true;
+      showPwMessage('');
+      try {
+        const check = await sb.auth.signInWithPassword({ email: currentUser.email, password: current });
+        if (check.error) {
+          return showPwMessage(/invalid login/i.test(check.error.message) ? 'Mật khẩu hiện tại không đúng.' : viError(check.error));
+        }
+        const { error } = await sb.auth.updateUser({ password: next });
+        if (error) return showPwMessage(viError(error));
+        document.getElementById('passwordForm').reset();
+        showPwMessage('Đã đổi mật khẩu thành công.', true);
+      } catch (err) {
+        showPwMessage(viError(err));
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    /* ---------- Chơi online ---------- */
+    let online = null;       // ván đang chơi: { id, side, version, row, busy, poll, channel, localState }
+    let waitingRoom = null;  // id phòng mình đang chờ
+    let lobbyTimer = null;
+    let lobbyBusy = false;
+    const lobbyModalEl = document.getElementById('lobbyModal');
+
+    function showLobbyMessage(msg) {
+      const el = document.getElementById('lobbyMessage');
+      el.textContent = msg || '';
+      el.classList.toggle('hidden', !msg);
+    }
+
+    function setWaiting(id) {
+      waitingRoom = id;
+      document.getElementById('lobbyWaiting').classList.toggle('hidden', !id);
+      document.getElementById('lobbyMain').classList.toggle('hidden', Boolean(id));
+    }
+
+    function openLobby() {
+      showLobbyMessage('');
+      showModal(lobbyModalEl, true);
+      clearInterval(lobbyTimer);
+      lobbyTimer = setInterval(pollLobby, 2500);
+      pollLobby();
+    }
+
+    // Đóng sảnh. Nếu đang chờ đối thủ thì hủy phòng.
+    function closeLobby() {
+      showModal(lobbyModalEl, false);
+      clearInterval(lobbyTimer);
+      const id = waitingRoom;
+      setWaiting(null);
+      if (id && sb && isAuthenticated()) sb.rpc('game_cancel', { p_game: id }).then(() => {}, () => {});
+    }
+
+    async function pollLobby() {
+      if (!isAuthenticated() || lobbyBusy || online && !online.row.winner) return;
+      lobbyBusy = true;
+      try {
+        if (waitingRoom) {
+          const id = waitingRoom;
+          const { data, error } = await sb.rpc('game_get', { p_game: id });
+          if (waitingRoom !== id) return;
+          if (error) { setWaiting(null); showLobbyMessage(viError(error)); return; }
+          if (data.status === 'playing') enterOnline(data);
+          else if (data.status !== 'waiting') setWaiting(null);
+          return;
+        }
+        const { data, error } = await sb.rpc('game_lobby');
+        if (error) return showLobbyMessage(viError(error));
+        if (lobbyModalEl.classList.contains('hidden') || waitingRoom) return;
+        if (data.mine) return await openGame(data.mine);
+        renderRooms(data.rooms);
+      } catch (err) {
+        showLobbyMessage(viError(err));
+      } finally {
+        lobbyBusy = false;
+      }
+    }
+
+    function renderRooms(rooms) {
+      const list = document.getElementById('roomList');
+      if (!rooms.length) {
+        list.replaceChildren(makeEl('p', 'text-xs text-center text-[#6e4626] py-3', 'Chưa có phòng nào. Hãy tạo phòng mới.'));
+        return;
+      }
+      list.replaceChildren(...rooms.map(room => {
+        const card = makeEl('div', 'flex items-center justify-between gap-2 rounded-xl border border-[#b5833e]/70 bg-[#fffaf0]/90 p-2.5');
+        const info = makeEl('div', 'min-w-0');
+        info.append(
+          makeEl('div', 'text-sm font-bold text-[#331908] break-words', room.host_name),
+          makeEl('div', 'text-[11px] text-[#6e4626]', `Bạn sẽ cầm quân ${room.open_side === 'r' ? 'Đỏ (đi trước)' : 'Đen'}`)
+        );
+        const btn = makeEl('button', 'wood-btn shrink-0 px-3 py-1.5 rounded-lg text-xs font-bold', 'Vào chơi');
+        btn.type = 'button';
+        btn.addEventListener('click', () => roomAction('game_join', { p_game: room.id }));
+        card.append(info, btn);
+        return card;
+      }));
+    }
+
+    async function roomAction(fn, args) {
+      showLobbyMessage('');
+      sfx.playSelect();
+      const buttons = lobbyModalEl.querySelectorAll('#lobbyMain button');
+      buttons.forEach(b => b.disabled = true);
+      try {
+        const { data, error } = await sb.rpc(fn, args);
+        if (error) showLobbyMessage(viError(error));
+        else if (data.status === 'playing') enterOnline(data);
+        else if (lobbyModalEl.classList.contains('hidden')) sb.rpc('game_cancel', { p_game: data.id }).then(() => {}, () => {});
+        else setWaiting(data.id);
+      } catch (err) {
+        showLobbyMessage(viError(err));
+      } finally {
+        buttons.forEach(b => b.disabled = false);
+      }
+    }
+
+    async function openGame(id) {
+      const { data, error } = await sb.rpc('game_get', { p_game: id });
+      if (error || !isAuthenticated()) return;
+      if (data.status === 'playing') enterOnline(data);
+      else if (data.status === 'waiting') {
+        if (lobbyModalEl.classList.contains('hidden')) openLobby();
+        setWaiting(data.id);
+      }
+    }
+
+    // Tải lại trang giữa chừng thì vào lại ván đang chơi
+    async function resumeOnline() {
+      if (!isAuthenticated() || online) return;
+      try {
+        const { data, error } = await sb.rpc('game_lobby');
+        if (!error && data.mine) await openGame(data.mine);
+      } catch (e) {}
+    }
+
+    function setBoardFlipped(flip) {
+      const red = document.getElementById('playerRedPlaque');
+      const black = document.getElementById('playerBlackPlaque');
+      document.querySelector('body > header').appendChild(flip ? red : black);
+      document.querySelector('body > footer').prepend(flip ? black : red);
+    }
+
+    function enterOnline(row) {
+      stopOnline();
+      const side = row.red_id === currentUser.id ? 'r' : 'b';
+      online = { id: row.id, side, version: 0, row: null, busy: false, localState: state };
+      setWaiting(null);
+      closeLobby();
+      closeAdmin();
+      selected = null;
+      validMoves = [];
+      lastBeepSec = null;
+      showModal(gameOverModalEl, false);
+      setBoardFlipped(side === 'b');
+      document.getElementById('redName').textContent = `${row.red_name} (Đỏ)${side === 'r' ? ' - Bạn' : ''}`;
+      document.getElementById('blackName').textContent = `${row.black_name} (Đen)${side === 'b' ? ' - Bạn' : ''}`;
+      document.getElementById('btnModalNewGame').textContent = 'Về sảnh';
+      applyGame(row);
+      online.poll = setInterval(fetchGame, 2000);
+      online.channel = sb.channel(`game-${row.id}`)
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'games', filter: `id=eq.${row.id}` }, () => fetchGame())
+        .subscribe();
+    }
+
+    // Thoát chế độ online, trả lại bàn cờ chơi chung một máy (không vẽ lại)
+    function stopOnline() {
+      if (!online) return;
+      clearInterval(online.poll);
+      if (online.channel) sb.removeChannel(online.channel);
+      state = online.localState;
+      online = null;
+      if (!state.gameOver && !state.pendingUndoFrom) state.turnDeadline = Date.now() + TURN_LIMIT_SEC * 1000;
+      selected = null;
+      validMoves = [];
+      lastBeepSec = null;
+      setBoardFlipped(false);
+      document.getElementById('redName').textContent = 'Bên Đỏ (Đi trước)';
+      document.getElementById('blackName').textContent = 'Bên Đen';
+      document.getElementById('newGameLabel').textContent = 'Ván mới';
+      document.getElementById('btnModalNewGame').textContent = 'Chơi ván mới';
+      showModal(gameOverModalEl, false);
+      showModal(undoModalEl, false);
+    }
+
+    function leaveOnline() {
+      stopOnline();
+      saveState();
+      renderBoard();
+    }
+
+    // Cập nhật bàn cờ theo dữ liệu máy chủ
+    function applyGame(row, force) {
+      if (!online || row.id !== online.id) return;
+      if (row.version < online.version || (row.version === online.version && !force)) return;
+      const prev = online.row;
+      online.row = row;
+      online.version = row.version;
+      const offset = Date.parse(row.server_now) - Date.now();
+      const moved = prev && row.move_count !== (online.shownMoves ?? prev.move_count);
+      online.shownMoves = row.move_count;
+      state = {
+        board: row.board,
+        turn: row.turn,
+        turnDeadline: row.deadline ? Date.parse(row.deadline) - offset : Date.now(),
+        lastMove: row.last_move,
+        history: [],
+        inCheckSide: row.in_check,
+        gameOver: row.status !== 'playing',
+        winnerSide: row.winner,
+        endReason: row.end_reason || '',
+        pendingUndoFrom: row.undo_from
+      };
+      selected = null;
+      validMoves = [];
+      lastBeepSec = null;
+      document.getElementById('newGameLabel').textContent = state.gameOver ? 'Rời bàn' : 'Xin thua';
+      if (moved) {
+        if (row.in_check) sfx.playCheck(); else sfx.playMove();
+      }
+      if (state.gameOver) {
+        clearInterval(online.poll);
+        showModal(undoModalEl, false);
+      }
+      renderBoard();
+      if (prev && prev.undo_from === online.side && !row.undo_from && !state.gameOver) {
+        statusPillEl.textContent = row.move_count < prev.move_count ? 'Đối phương đã đồng ý cho đi lại!' : 'Đối phương đã từ chối xin đi lại';
+      }
+      if (state.gameOver && (!prev || prev.status === 'playing')) setTimeout(showGameOverModal, 320);
+    }
+
+    async function fetchGame(force) {
+      const game = online;
+      if (!game || game.busy) return;
+      try {
+        const { data, error } = await sb.rpc('game_get', { p_game: game.id });
+        if (online !== game || game.busy) return;
+        if (error) {
+          if (/Không tìm thấy/.test(error.message)) { leaveOnline(); statusPillEl.textContent = 'Ván online không còn tồn tại'; }
+          else statusPillEl.textContent = viError(error);
+          return;
+        }
+        applyGame(data, force === true);
+      } catch (e) {
+        statusPillEl.textContent = 'Mất kết nối, đang thử lại...';
+      }
+    }
+
+    // Gửi thao tác lên máy chủ
+    async function onlineCall(fn, args) {
+      const game = online;
+      if (!game || game.busy) return;
+      game.busy = true;
+      let failed = null;
+      try {
+        const { data, error } = await sb.rpc(fn, { p_game: game.id, ...args });
+        if (online !== game) return;
+        if (error) failed = viError(error);
+        else applyGame(data, true);
+      } catch (e) {
+        failed = viError(e);
+      } finally {
+        game.busy = false;
+      }
+      if (failed && online === game) {
+        await fetchGame(true);
+        if (online === game) statusPillEl.textContent = failed;
+      }
+    }
+
+    document.getElementById('btnOnline').addEventListener('click', () => {
+      if (online && !state.gameOver) {
+        statusPillEl.textContent = 'Bạn đang trong ván online';
+        return;
+      }
+      if (online) leaveOnline();
+      openLobby();
+    });
+    document.getElementById('btnLobbyClose').addEventListener('click', closeLobby);
+    document.getElementById('btnCancelRoom').addEventListener('click', () => {
+      const id = waitingRoom;
+      setWaiting(null);
+      if (id) sb.rpc('game_cancel', { p_game: id }).then(({ data }) => { if (data && data.status === 'playing') enterOnline(data); else pollLobby(); });
+    });
+    document.getElementById('btnCreateRed').addEventListener('click', () => roomAction('game_create', { side: 'r' }));
+    document.getElementById('btnCreateBlack').addEventListener('click', () => roomAction('game_create', { side: 'b' }));
 
     /**
      * =========================================================================
@@ -1651,12 +2026,14 @@
     let lastBeepSec = null;
 
     function saveState() {
+      if (online) return;
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
       } catch (e) {}
     }
 
     function loadState() {
+      if (online) return false;
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (!raw) return false;
@@ -1693,7 +2070,7 @@
     const gameOverModalEl = document.getElementById('gameOverModal');
 
     function showGameOverModal() {
-      if (!isAuthenticated()) return;
+      if (!isAuthenticated() || !state.gameOver) return;
       const icon = document.getElementById('winnerBadgeIcon');
       const title = document.getElementById('gameOverTitle');
       const reason = document.getElementById('gameOverReason');
@@ -1732,6 +2109,11 @@
       if (state.pendingUndoFrom) return;
 
       const remaining = (state.turnDeadline - Date.now()) / 1000;
+      if (online && remaining <= 0) {
+        // Máy chủ quyết định hết giờ
+        (state.turn === 'r' ? timerRedEl : timerBlackEl).textContent = '00:00';
+        return;
+      }
       if (remaining <= 0) {
         const loserSide = state.turn;
         const winnerSide = loserSide === 'r' ? 'b' : 'r';
@@ -1787,7 +2169,7 @@
     }
 
     function syncUndoModalUI() {
-      if (isAuthenticated() && state.pendingUndoFrom && !state.gameOver) {
+      if (isAuthenticated() && state.pendingUndoFrom && !state.gameOver && !(online && online.side === state.pendingUndoFrom)) {
         const requester = state.pendingUndoFrom === 'r' ? 'Bên Đỏ' : 'Bên Đen';
         const approver = state.pendingUndoFrom === 'r' ? 'Bên Đen' : 'Bên Đỏ';
         undoDescEl.textContent = `${requester} muốn xin đi lại nước vừa rồi. Chờ ${approver} xác nhận:`;
@@ -1799,6 +2181,13 @@
       }
     }
 
+    // Bên Đen chơi online nhìn bàn cờ xoay 180 độ
+    function pointPos(r, c) {
+      const flip = online && online.side === 'b';
+      const vr = flip ? 9 - r : r, vc = flip ? 8 - c : c;
+      return { left: `${((50 + vc * 100) / 900) * 100}%`, top: `${((50 + vr * 100) / 1000) * 100}%` };
+    }
+
     function renderBoard() {
       interactiveLayer.innerHTML = '';
       const boardWidth = boardSurface.clientWidth || 360;
@@ -1808,8 +2197,7 @@
       if (state.lastMove) {
         const origin = document.createElement('div');
         origin.className = 'last-move-origin';
-        origin.style.left = `${((50 + state.lastMove.from.c * 100) / 900) * 100}%`;
-        origin.style.top = `${((50 + state.lastMove.from.r * 100) / 1000) * 100}%`;
+        Object.assign(origin.style, pointPos(state.lastMove.from.r, state.lastMove.from.c));
         interactiveLayer.appendChild(origin);
       }
 
@@ -1825,8 +2213,7 @@
 
           const el = document.createElement('div');
           el.className = `xiangqi-piece ${side === 'r' ? 'piece-red' : 'piece-black'}${isSelected ? ' selected' : ''}${isKingChecked ? ' in-check' : ''}${isLastMoved ? ' last-moved' : ''}`;
-          el.style.left = `${((50 + c * 100) / 900) * 100}%`;
-          el.style.top = `${((50 + r * 100) / 1000) * 100}%`;
+          Object.assign(el.style, pointPos(r, c));
           el.style.width = `${pieceSize}px`;
           el.style.height = `${pieceSize}px`;
 
@@ -1851,8 +2238,7 @@
 
       if (isAuthenticated()) {
         validMoves.forEach(m => {
-          const leftPct = `${((50 + m.c * 100) / 900) * 100}%`;
-          const topPct = `${((50 + m.r * 100) / 1000) * 100}%`;
+          const { left: leftPct, top: topPct } = pointPos(m.r, m.c);
           if (state.board[m.r][m.c]) {
             const ring = document.createElement('div');
             ring.className = 'capture-ring';
@@ -1885,12 +2271,43 @@
         btnUndoEl.disabled = true;
       }
 
+      if (online && !state.gameOver) {
+        const mine = state.turn === online.side;
+        if (state.pendingUndoFrom) {
+          statusPillEl.textContent = state.pendingUndoFrom === online.side ? 'Đang chờ đối phương trả lời...' : 'Đối phương xin đi lại';
+        } else {
+          statusPillEl.textContent = state.inCheckSide
+            ? (mine ? 'Bạn đang bị chiếu tướng!' : 'Đối phương đang bị chiếu!')
+            : (mine ? 'Đến lượt bạn (90s)' : 'Chờ đối phương đi');
+        }
+        btnUndoEl.disabled = mine || Boolean(state.pendingUndoFrom) || online.row.move_count === 0 || online.row.undo_used;
+      }
+
       syncUndoModalUI();
       updateClocksAndPlaques();
     }
 
     function executeMove(r1, c1, r2, c2) {
       if (!isAuthenticated() || state.gameOver || state.pendingUndoFrom) return;
+      if (online) {
+        if (online.busy) return;
+        // Hiện nước đi ngay, máy chủ xác nhận sau
+        state.board = cloneBoard(state.board);
+        const captures = Boolean(state.board[r2][c2]);
+        state.board[r2][c2] = state.board[r1][c1];
+        state.board[r1][c1] = null;
+        state.lastMove = { from: { r: r1, c: c1 }, to: { r: r2, c: c2 } };
+        state.turn = state.turn === 'r' ? 'b' : 'r';
+        state.inCheckSide = null;
+        state.turnDeadline = Date.now() + TURN_LIMIT_SEC * 1000;
+        selected = null;
+        validMoves = [];
+        online.shownMoves = online.row.move_count + 1;
+        if (captures) sfx.playCapture(); else sfx.playMove();
+        onlineCall('game_move', { p_version: online.version, r1, c1, r2, c2 });
+        renderBoard();
+        return;
+      }
       const movingPiece = state.board[r1][c1];
       const captured = Boolean(state.board[r2][c2]);
 
@@ -1937,6 +2354,7 @@
 
     function handleIntersectionClick(r, c) {
       if (!isAuthenticated() || state.gameOver || state.pendingUndoFrom) return;
+      if (online && (online.busy || state.turn !== online.side)) return;
       const clicked = state.board[r][c];
 
       if (clicked && sideOf(clicked) === state.turn) {
@@ -1963,15 +2381,16 @@
       const rect = boardSurface.getBoundingClientRect();
       const relX = (e.clientX - rect.left) / rect.width;
       const relY = (e.clientY - rect.top) / rect.height;
-      const c = Math.round((relX * 900 - 50) / 100);
-      const r = Math.round((relY * 1000 - 50) / 100);
+      let c = Math.round((relX * 900 - 50) / 100);
+      let r = Math.round((relY * 1000 - 50) / 100);
+      if (online && online.side === 'b') { r = 9 - r; c = 8 - c; }
       if (inBounds(r, c)) {
         handleIntersectionClick(r, c);
       }
     });
 
     function resetGame() {
-      if (!isAuthenticated()) return;
+      if (!isAuthenticated() || online) return;
       state = {
         board: createInitialBoard(),
         turn: 'r',
@@ -1997,6 +2416,7 @@
     }
 
     btnUndoEl.addEventListener('click', () => {
+      if (online) { onlineCall('game_undo_request'); return; }
       if (!isAuthenticated() || state.gameOver || state.pendingUndoFrom || state.history.length === 0) return;
       state.pendingUndoFrom = state.turn === 'r' ? 'b' : 'r';
       saveState();
@@ -2005,6 +2425,7 @@
     });
 
     document.getElementById('btnAcceptUndo').addEventListener('click', () => {
+      if (online) { onlineCall('game_undo_respond', { accept: true }); return; }
       const prev = state.history.pop();
       state.pendingUndoFrom = null;
       if (prev) {
@@ -2024,6 +2445,7 @@
     });
 
     document.getElementById('btnRejectUndo').addEventListener('click', () => {
+      if (online) { onlineCall('game_undo_respond', { accept: false }); return; }
       state.pendingUndoFrom = null;
       saveState();
       sfx.playSelect();
@@ -2031,8 +2453,16 @@
       statusPillEl.textContent = 'Đối phương đã từ chối xin đi lại';
     });
 
-    btnNewGameEl.addEventListener('click', resetGame);
-    document.getElementById('btnModalNewGame').addEventListener('click', resetGame);
+    btnNewGameEl.addEventListener('click', () => {
+      if (!online) return resetGame();
+      if (state.gameOver) return leaveOnline();
+      if (confirm('Bạn chắc chắn muốn xin thua ván này?')) onlineCall('game_resign');
+    });
+    document.getElementById('btnModalNewGame').addEventListener('click', () => {
+      if (!online) return resetGame();
+      leaveOnline();
+      openLobby();
+    });
     document.getElementById('btnViewBoard').addEventListener('click', () => {
       gameOverModalEl.classList.add('hidden');
       gameOverModalEl.classList.remove('flex');
@@ -2040,7 +2470,8 @@
 
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) {
-        loadState();
+        if (online) { if (!state.gameOver) fetchGame(); }
+        else loadState();
         renderBoard();
         refreshProfile();
         if (musicEnabled && bgmAudio.paused) {
