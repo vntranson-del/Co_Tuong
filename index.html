@@ -753,8 +753,8 @@
       </div>
     </div>
 
-    <div class="flex items-center gap-2">
-      <div id="statusPill" class="flex-1 px-3 py-2 rounded-xl bg-[#fff8ea]/90 border border-[#b5833e] text-xs font-bold text-[#47240d] text-center shadow-sm truncate">
+    <div class="flex flex-wrap justify-end items-center gap-2">
+      <div id="statusPill" class="flex-1 basis-32 px-3 py-2 rounded-xl bg-[#fff8ea]/90 border border-[#b5833e] text-xs font-bold text-[#47240d] text-center shadow-sm truncate">
         Vui lòng đăng nhập để vào bàn cờ
       </div>
 
@@ -767,6 +767,8 @@
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
         <span id="newGameLabel">Ván mới</span>
       </button>
+
+      <button id="btnResign" type="button" class="px-3 py-2 rounded-xl border border-[#8f6d46] bg-[#e6d1ae] text-[#45210c] text-xs font-bold shrink-0 hidden">Xin thua</button>
     </div>
   </footer>
 
@@ -934,7 +936,19 @@
     </div>
   </div>
 
-  <script>
+    <!-- Hộp thoại xin đồng ý ván mới -->
+  <div id="newGameModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-[2px] hidden items-center justify-center p-4">
+    <div class="w-full max-w-[350px] rounded-2xl bg-gradient-to-b from-[#fff9ec] to-[#f0dcb9] border-2 border-[#b5833e] shadow-2xl p-5 text-center">
+      <h3 class="text-lg font-bold text-[#45210c] mb-1">Mời Chơi Ván Mới</h3>
+      <p id="newGameDesc" class="text-sm text-[#5e381c] leading-relaxed mb-5"></p>
+      <div class="flex gap-3 justify-center">
+        <button id="btnRejectNewGame" type="button" class="flex-1 py-2.5 px-3 rounded-xl border border-[#8f6d46] bg-[#e6d1ae] text-[#45210c] font-bold text-sm">Từ chối</button>
+        <button id="btnAcceptNewGame" type="button" class="flex-1 wood-btn py-2.5 px-3 rounded-xl font-bold text-sm">Đồng ý</button>
+      </div>
+    </div>
+  </div>
+
+<script>
     /**
      * =========================================================================
      * 0. QUẢN LÝ TÀI KHOẢN (ĐĂNG NHẬP / ĐĂNG KÝ) & NHẠC NỀN MP3
@@ -1371,6 +1385,27 @@
       }
     });
 
+    /* ---------- Đồng ý ván mới ---------- */
+    let localNewGameAsk = false;   // đang chờ đối thủ đồng ý (chơi chung một máy)
+
+    function syncNewGameUI() {
+      let desc = '';
+      if (online) {
+        const from = online.row && online.row.newgame_from;
+        if (from && from !== online.side) {
+          desc = state.gameOver
+            ? 'Đối phương mời bạn chơi ván mới. Bạn có đồng ý không?'
+            : 'Đối phương muốn bỏ ván này (không tính thắng thua) để chơi ván mới. Bạn có đồng ý không?';
+        }
+      } else if (localNewGameAsk && isAuthenticated() && !state.gameOver) {
+        desc = 'Có người muốn bỏ ván này để chơi ván mới. Đối thủ có đồng ý không?';
+      } else {
+        localNewGameAsk = false;
+      }
+      document.getElementById('newGameDesc').textContent = desc;
+      showModal(document.getElementById('newGameModal'), Boolean(desc));
+    }
+
     /* ---------- Chơi online ---------- */
     let online = null;       // ván đang chơi: { id, side, version, row, busy, poll, channel, localState }
     let waitingRoom = null;  // id phòng mình đang chờ
@@ -1511,7 +1546,10 @@
       setBoardFlipped(side === 'b');
       document.getElementById('redName').textContent = `${row.red_name} (Đỏ)${side === 'r' ? ' - Bạn' : ''}`;
       document.getElementById('blackName').textContent = `${row.black_name} (Đen)${side === 'b' ? ' - Bạn' : ''}`;
-      document.getElementById('btnModalNewGame').textContent = 'Về sảnh';
+      document.getElementById('btnModalNewGame').textContent = 'Mời chơi lại';
+      document.getElementById('btnResign').classList.remove('hidden');
+      statusPillEl.style.flexBasis = '100%';
+      localNewGameAsk = false;
       applyGame(row);
       online.poll = setInterval(fetchGame, 2000);
       online.channel = sb.channel(`game-${row.id}`)
@@ -1537,9 +1575,14 @@
       document.getElementById('btnModalNewGame').textContent = 'Chơi ván mới';
       showModal(gameOverModalEl, false);
       showModal(undoModalEl, false);
+      showModal(document.getElementById('newGameModal'), false);
+      document.getElementById('btnResign').classList.add('hidden');
+      statusPillEl.style.flexBasis = '';
+      btnNewGameEl.disabled = !isAuthenticated();
     }
 
     function leaveOnline() {
+      if (online && state.gameOver) sb.rpc('game_leave', { p_game: online.id }).then(() => {}, () => {});
       stopOnline();
       saveState();
       renderBoard();
@@ -1553,7 +1596,8 @@
       online.row = row;
       online.version = row.version;
       const offset = Date.parse(row.server_now) - Date.now();
-      const moved = prev && row.move_count !== (online.shownMoves ?? prev.move_count);
+      const newRound = Boolean(prev) && row.round !== prev.round;
+      const moved = prev && !newRound && row.move_count !== (online.shownMoves ?? prev.move_count);
       online.shownMoves = row.move_count;
       state = {
         board: row.board,
@@ -1570,19 +1614,25 @@
       selected = null;
       validMoves = [];
       lastBeepSec = null;
-      document.getElementById('newGameLabel').textContent = state.gameOver ? 'Rời bàn' : 'Xin thua';
+      document.getElementById('btnResign').textContent = state.gameOver ? 'Rời bàn' : 'Xin thua';
       if (moved) {
         if (row.in_check) sfx.playCheck(); else sfx.playMove();
       }
-      if (state.gameOver) {
-        clearInterval(online.poll);
-        showModal(undoModalEl, false);
+      if (state.gameOver) showModal(undoModalEl, false);
+      if (newRound) {
+        showModal(gameOverModalEl, false);
+        sfx.playSelect();
       }
       renderBoard();
-      if (prev && prev.undo_from === online.side && !row.undo_from && !state.gameOver) {
+      if (newRound) {
+        statusPillEl.textContent = 'Ván mới bắt đầu!';
+      } else if (prev && prev.newgame_from === online.side && !row.newgame_from) {
+        statusPillEl.textContent = row[online.side === 'r' ? 'black_left' : 'red_left']
+          ? 'Đối phương đã rời bàn' : 'Đối phương chưa đồng ý ván mới';
+      } else if (prev && prev.undo_from === online.side && !row.undo_from && !state.gameOver) {
         statusPillEl.textContent = row.move_count < prev.move_count ? 'Đối phương đã đồng ý cho đi lại!' : 'Đối phương đã từ chối xin đi lại';
       }
-      if (state.gameOver && (!prev || prev.status === 'playing')) setTimeout(showGameOverModal, 320);
+      if (state.gameOver && (!prev || prev.status === 'playing' || newRound)) setTimeout(showGameOverModal, 320);
     }
 
     async function fetchGame(force) {
@@ -2280,10 +2330,20 @@
             ? (mine ? 'Bạn đang bị chiếu tướng!' : 'Đối phương đang bị chiếu!')
             : (mine ? 'Đến lượt bạn (90s)' : 'Chờ đối phương đi');
         }
-        btnUndoEl.disabled = mine || Boolean(state.pendingUndoFrom) || online.row.move_count === 0 || online.row.undo_used;
+        btnUndoEl.disabled = mine || Boolean(state.pendingUndoFrom) || Boolean(online.row.newgame_from)
+          || online.row.move_count === 0 || online.row.undo_used;
+      }
+      if (online && online.row) {
+        const row = online.row, red = online.side === 'r';
+        const gone = row[red ? 'black_left' : 'red_left'];
+        const asked = row[red ? 'red_asked' : 'black_asked'] === (state.gameOver ? -1 : row.move_count);
+        btnNewGameEl.disabled = gone || asked || Boolean(row.newgame_from) || Boolean(state.pendingUndoFrom);
+        if (row.newgame_from === online.side) statusPillEl.textContent = 'Đang chờ đối phương đồng ý ván mới...';
+        else if (gone) statusPillEl.textContent = 'Đối phương đã rời bàn';
       }
 
       syncUndoModalUI();
+      syncNewGameUI();
       updateClocksAndPlaques();
     }
 
@@ -2453,15 +2513,33 @@
       statusPillEl.textContent = 'Đối phương đã từ chối xin đi lại';
     });
 
-    btnNewGameEl.addEventListener('click', () => {
-      if (!online) return resetGame();
+    // "Ván mới": ván đang chơi dở thì phải được đối thủ đồng ý
+    function requestNewGame() {
+      if (online) return onlineCall('game_newgame_request');
+      if (!isAuthenticated()) return;
+      if (state.gameOver || !state.lastMove) return resetGame();
+      localNewGameAsk = true;
+      syncNewGameUI();
+    }
+
+    function answerNewGame(accept) {
+      if (online) return onlineCall('game_newgame_respond', { accept });
+      localNewGameAsk = false;
+      if (accept) resetGame();
+      syncNewGameUI();
+    }
+
+    btnNewGameEl.addEventListener('click', requestNewGame);
+    document.getElementById('btnAcceptNewGame').addEventListener('click', () => answerNewGame(true));
+    document.getElementById('btnRejectNewGame').addEventListener('click', () => answerNewGame(false));
+    document.getElementById('btnResign').addEventListener('click', () => {
+      if (!online) return;
       if (state.gameOver) return leaveOnline();
       if (confirm('Bạn chắc chắn muốn xin thua ván này?')) onlineCall('game_resign');
     });
     document.getElementById('btnModalNewGame').addEventListener('click', () => {
-      if (!online) return resetGame();
-      leaveOnline();
-      openLobby();
+      if (online) showModal(gameOverModalEl, false);
+      requestNewGame();
     });
     document.getElementById('btnViewBoard').addEventListener('click', () => {
       gameOverModalEl.classList.add('hidden');
@@ -2470,7 +2548,7 @@
 
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) {
-        if (online) { if (!state.gameOver) fetchGame(); }
+        if (online) fetchGame();
         else loadState();
         renderBoard();
         refreshProfile();
